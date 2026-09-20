@@ -904,8 +904,8 @@ ${port}
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div class="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <div class="text-xs text-gray-400">${esc(marketLabel)} · ${esc(s.symbol || '')}</div>
-                  <div class="text-sm font-bold text-white mt-0.5">${esc(s.display_name || s.symbol || '標的')}</div>
+                  <div class="text-xs text-gray-400">${esc(marketLabel)} · ${esc(s.display_code || (s.symbol || '').replace(/\.(TW|TWO)$/,'') )}</div>
+                  <div class="text-sm font-bold text-white mt-0.5">${esc(s.display_name || s.display_code || s.symbol || '標的')}</div>
                 </div>
                 <div class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${esc(s.currency || '')}</div>
               </div>
