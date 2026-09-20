@@ -143,7 +143,7 @@
               <span class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center text-xs font-bold">1</span>
               <span>交易點子生成器</span>
             </div>
-            <span class="text-[11px] text-gray-400">5個高勝率機會</span>
+            <span class="text-[11px] text-gray-400">依風格產生5個機會</span>
           </button>
 
           <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent">
@@ -620,7 +620,23 @@ BNDW 全球債券: 20%
       }
     });
 
-    // 共用標的：輸入一次後，模組 1～4 自動共用
+    function updateTradeStyleHint() {
+      const sel = document.getElementById('m1-timeframe');
+      const hint = document.getElementById('m1-style-hint');
+      if (!sel || !hint) return;
+      const v = sel.value || '';
+      if (v.includes('短線')) {
+        hint.textContent = '短線隔日沖：主要看 5MA／20MA、量能、RSI／KD；停損較緊，回測最長持有約 3 天。';
+      } else if (v.includes('中長線')) {
+        hint.textContent = '中長線趨勢：主要看 20／60MA、MACD、週線方向；停損較寬，回測最長持有約 60 天。';
+      } else if (v.includes('價值型')) {
+        hint.textContent = '價值型長線存股：主要看 60／240MA、52週位置與長期趨勢；回測最長持有約 120 天。完整財報／估值資料尚未接入時，不會臆測基本面。';
+      } else {
+        hint.textContent = '波段操作：主要看 20／60MA、支撐壓力、MACD／RSI；回測最長持有約 20 天。';
+      }
+    }
+
+        // 共用標的：輸入一次後，模組 1～4 自動共用
     function syncGlobalTarget(val) {
       ['m1-target','m2-symbol','m3-company','m4-asset'].forEach(id => {
         const el = document.getElementById(id);
