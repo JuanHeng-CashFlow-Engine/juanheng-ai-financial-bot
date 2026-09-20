@@ -782,9 +782,22 @@ ${port}
         if (moduleNo === 1) {
           const ideas = Array.isArray(a.ideas) ? a.ideas.map((x, i) => `
             <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
-              <div class="font-bold text-white mb-1">${i+1}. ${esc(x.name)}</div>
-              <div class="text-xs text-gray-300">條件：${esc(x.condition)}</div>
-              <div class="text-xs text-rose-300 mt-1">風險：${esc(x.risk)}</div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="font-bold text-white">${i+1}. ${esc(x.name)}</div>
+                <div class="text-[10px] px-2 py-0.5 rounded bg-teal-950/40 text-teal-300 border border-teal-500/30">
+                  R:R ${formatNum(x.risk_reward,2)}
+                </div>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs">
+                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">進場價格</span><b class="text-white">${formatNum(x.entry_price,2)}</b></div>
+                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">出場目標</span><b class="text-emerald-300">${formatNum(x.target_price,2)}</b></div>
+                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">停損點</span><b class="text-rose-300">${formatNum(x.stop_loss,2)}</b></div>
+                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">風險報酬比</span><b class="text-teal-300">1 : ${formatNum(x.risk_reward,2)}</b></div>
+              </div>
+              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">成立條件：</span>${esc(x.trigger)}</div>
+              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">技術面理由：</span>${esc(x.technical_reason)}</div>
+              <div class="text-xs text-gray-300"><span class="text-gray-500">基本面理由：</span>${esc(x.fundamental_reason)}</div>
+              ${x.note ? '<div class="text-[10px] text-gray-500 mt-2">'+esc(x.note)+'</div>' : ''}
             </div>`).join('') : '';
           return `
             <div class="space-y-3">
