@@ -865,6 +865,10 @@ ${port}
             <div class="space-y-3">
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '交易點子')}</div>
               <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
+              ${a.trade_style ? `
+                <div class="text-[11px] text-teal-300 bg-teal-950/20 border border-teal-500/20 rounded-lg p-2">
+                  目前交易風格：${esc(a.trade_style.label || '')} · 回測單筆最長持有約 ${esc(a.trade_style.hold_days ?? '')} 天
+                </div>` : ''}
               <div class="text-xs text-gray-400 bg-gray-800/40 border border-gray-700 rounded-lg p-2">
                 說明：下面 5 個交易情境都會用近 5 年歷史日線逐一回測。回測只代表過去表現，不代表未來一定相同。
               </div>
