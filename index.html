@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>涓恆 AI 理財機器人｜投資研究與風險管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            },
+            dark: {
+              bg: '#0b0f19',
+              card: '#111827',
+              border: '#1f293d',
+              accent: '#1e293b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #0b0f19;
+      color: #f3f4f6;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #111827;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+    .gradient-border {
+      position: relative;
+      border-radius: 0.75rem;
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.3), rgba(59, 130, 246, 0.1), rgba(255,255,255,0.05));
+      padding: 1px;
+    }
+    .gradient-border > div {
+      background: #111827;
+      border-radius: calc(0.75rem - 1px);
+    }
+    @media print {
+      body {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .report-card {
+        border: 1px solid #e5e7eb !important;
+        background: #ffffff !important;
+        color: #111827 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col custom-scrollbar">
+
+  <!-- 頂部導航列 -->
+  <header class="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur border-b border-gray-800 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
+            <i class="fa-solid fa-chart-line text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+              涓恆 AI 理財機器人
+              <span class="text-xs px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 font-normal">Web Pro</span>
+            </h1>
+            <p class="text-xs text-gray-400">投資研究輔助：交易構想 ‧ 技術分析 ‧ 新聞解讀 ‧ 策略回測 ‧ 投組風控</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+          <button onclick="resetAllForms()" class="px-3 py-1.5 text-xs text-gray-300 hover:text-white bg-gray-800/60 hover:bg-gray-700/60 rounded-lg border border-gray-700 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-rotate-left"></i> 重置重填
+          </button>
+          <button onclick="printReport()" class="px-3 py-1.5 text-xs text-teal-300 bg-teal-950/40 hover:bg-teal-900/60 border border-teal-500/30 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-print"></i> 列印 / 匯出 PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主架構容器 -->
+  <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- 左側 / 模組選單與輸入表單 (佔比 5 格) -->
+    <div class="lg:col-span-5 flex flex-col space-y-5 no-print">
+      
+      <!-- 模組切換頁籤 (對應5張照片) -->
+      <div class="bg-gray-900/90 rounded-2xl p-2 border border-gray-800 shadow-xl">
+        <label class="block text-xs font-semibold text-gray-400 px-2 mb-2 uppercase tracking-wider">
+          <i class="fa-solid fa-layer-group text-teal-400 mr-1.5"></i> 選擇理財分析任務（5 大專業模組）
+        </label>
+        <div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+          <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn active w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center text-xs font-bold">1</span>
+              <span>交易點子生成器</span>
+            </div>
+            <span class="text-[11px] text-gray-400">5個高勝率機會</span>
+          </button>
+
+          <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold">2</span>
+              <span>自動技術分析師</span>
+            </div>
+            <span class="text-[11px] text-gray-400">日週線/支撐壓力</span>
+          </button>
+
+          <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold">3</span>
+              <span>新聞轉交易策略</span>
+            </div>
+            <span class="text-[11px] text-gray-400">長短期波動與配置</span>
+          </button>
+
+          <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold">4</span>
+              <span>策略回測分析師</span>
+            </div>
+            <span class="text-[11px] text-gray-400">勝率/MDD/改進</span>
+          </button>
+
+          <button onclick="switchTab(5)" id="tab-btn-5" class="tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-lg bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold">5</span>
+              <span>投資組合風險管理</span>
+            </div>
+            <span class="text-[11px] text-gray-400">弱點/再平衡/避險</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 表單輸入區塊 -->
+      <div class="bg-gray-900/90 rounded-2xl p-5 border border-gray-800 shadow-xl flex-1 flex flex-col">
+        
+        <!-- 模組 1：交易點子生成器 -->
+        <div id="module-1" class="module-content flex-1 flex flex-col space-y-4">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 1 來源規範</span>
+              <span class="text-xs text-gray-400"><i class="fa-solid fa-bolt text-yellow-400 mr-1"></i>高勝率交易發掘</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">交易點子生成器 (Trade Idea Generator)</h3>
+            <p class="text-xs text-gray-400 mt-1 italic">
+              「掃描今天的市場，針對 [填入股票/指數/產業] 產生 5 個高勝率交易機會。包含進場價格、出場目標、停損點與風險報酬比，並根據技術面與基本面因素，說明每個交易機會成立的原因。」
+            </p>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">目標標的 (股票 / 指數 / 產業)</label>
+              <input type="text" id="m1-target" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 (2330) 或 美股半導體 / AI伺服器產業">
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="setM1Target('台積電 (2330)')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 2330 台積電</button>
+                <button type="button" onclick="setM1Target('輝達 (NVDA)')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 輝達 (NVDA)</button>
+                <button type="button" onclick="setM1Target('元大高股息 (0056) & 0050')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 台灣大型ETF</button>
+                <button type="button" onclick="setM1Target('AI 邊緣運算與晶圓代工')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ AI 半導體產業</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">交易週期風格</label>
+                <select id="m1-timeframe" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="波段波段操作 (1-4 週)">波段操作 (1-4 週)</option>
+                  <option value="短線當沖與隔日沖 (1-3 天)">短線隔日沖 (1-3 天)</option>
+                  <option value="中長線趨勢佈局 (1-3 個月)">中長線趨勢 (1-3 個月)</option>
+                  <option value="價值型長期存股 (6 個月以上)">價值型長線存股</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">最低風險報酬比 (R:R)</label>
+                <select id="m1-rr" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="1 : 2.5 以上">1 : 2.5 (推薦標準)</option>
+                  <option value="1 : 2.0 以上">1 : 2.0 (標準波段)</option>
+                  <option value="1 : 3.0 以上">1 : 3.0 (高盈虧比)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">附加市場條件或特殊觀察</label>
+              <textarea id="m1-notes" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" placeholder="可選：如大盤近期處於箱型整理、關注季線支撐或外資買賣超動能..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 模組 2：自動技術分析師 -->
+        <div id="module-2" class="module-content hidden flex-1 flex flex-col space-y-4">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 2 來源規範</span>
+              <span class="text-xs text-gray-400"><i class="fa-solid fa-chart-candlestick text-teal-400 mr-1"></i>多週期K線技術拆解</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">自動技術分析師 (Technical Analyst)</h3>
+            <p class="text-xs text-gray-400 mt-1 italic">
+              「使用日線與週線圖分析 [填入股票/代號]。拆解支撐與壓力區、趨勢線、移動平均線及動能指標，並逐步提供買進／持有／賣出的交易訊號與理由。」
+            </p>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">分析標的代號／名稱</label>
+              <input type="text" id="m2-symbol" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：2330 台積電 或 AAPL 蘋果">
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="setM2Symbol('2330 台積電')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 2330 台積電</button>
+                <button type="button" onclick="setM2Symbol('0050 元大台灣50')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 0050 ETF</button>
+                <button type="button" onclick="setM2Symbol('NVDA 輝達')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ NVDA</button>
+                <button type="button" onclick="setM2Symbol('TSLA 特斯拉')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ TSLA</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">關鍵均線配置</label>
+                <select id="m2-ma" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="5MA, 20MA(月線), 60MA(季線), 240MA(年線)">標準 (5 / 20 / 60 / 240)</option>
+                  <option value="10EMA, 20EMA, 50SMA, 200SMA">美股慣用 (10/20 EMA + 50/200 SMA)</option>
+                  <option value="布林通道 (20MA, 2標準差)">布林通道 Bollinger Bands</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">動能與擺盪指標</label>
+                <select id="m2-oscillator" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="RSI(14) 與 MACD(12,26,9) 背離">RSI + MACD 背離</option>
+                  <option value="KD指標 (9,3,3) 黃金/死亡交叉">KD隨機指標 (9,3,3)</option>
+                  <option value="量價成交量 Profile 與 OBV">量價分佈與 OBV</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">當前觀察價格／成本（可選）</label>
+              <input type="text" id="m2-price" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" placeholder="例如：現價約 1020 元，持股成本 980 元">
+            </div>
+          </div>
+        </div>
+
+        <!-- 模組 3：新聞轉交易策略 -->
+        <div id="module-3" class="module-content hidden flex-1 flex flex-col space-y-4">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 3 來源規範</span>
+              <span class="text-xs text-gray-400"><i class="fa-solid fa-newspaper text-teal-400 mr-1"></i>新聞事件催化劑轉化</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">新聞轉交易策略 (News-to-Trade Strategy)</h3>
+            <p class="text-xs text-gray-400 mt-1 italic">
+              「整理 [填入公司／產業] 的最新新聞，並轉化為交易影響。說明可能的短期與長期影響、預期價格波動區間，以及建議的部位配置。」
+            </p>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">關注公司／產業</label>
+              <input type="text" id="m3-company" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 / 先進封裝 CoWoS 或 美國聯準會降息循環">
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="setM3Company('台積電 2330 赴美歐擴產與CoWoS供不應求')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 台積電擴產新聞</button>
+                <button type="button" onclick="setM3Company('美國FED宣布降息2碼與非農就業公佈')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 聯準會利率決策</button>
+                <button type="button" onclick="setM3Company('OpenAI發布新一代大模型推升AI晶片需求')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ AI 模型升級題材</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">近期重大新聞摘要或原始事件描述</label>
+              <textarea id="m3-news" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" placeholder="貼上新聞標題、快訊或重點，例如：外資調高台積電目標價至1250元，預估2026年毛利率維持53%以上，但市場擔憂地緣政治與電力供應議題..."></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">偏好的部位管理風格</label>
+              <select id="m3-risk" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                <option value="穩健型（分批建倉，最高持股不超過總資金 25%）">穩健型（分批建倉，單一標的 ≤ 25%）</option>
+                <option value="積極進攻型（事件催化確認後重倉突破，預設嚴格停損）">積極進攻型（動能突破，單一標的 40%）</option>
+                <option value="防禦避險型（以期權或反向標的對沖，保護現有部位）">防禦避險型（搭配避險對沖）</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- 模組 4：策略回測分析師 -->
+        <div id="module-4" class="module-content hidden flex-1 flex flex-col space-y-4">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 4 來源規範</span>
+              <span class="text-xs text-gray-400"><i class="fa-solid fa-microchip text-teal-400 mr-1"></i>量化驗證與勝率檢驗</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">策略回測分析師 (Strategy Backtesting Analyst)</h3>
+            <p class="text-xs text-gray-400 mt-1 italic">
+              「針對 [填入交易策略，例如均線交叉、RSI 背離]，在 [填入股票／指數] 過去 [填入期間] 的資料上執行回測。呈現勝率、獲利因子、最大回撤，以及可提高策略優勢的改進方向。」
+            </p>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">交易策略邏輯</label>
+              <input type="text" id="m4-strategy" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：20MA 與 60MA 黃金交叉買進、死亡交叉賣出">
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="setM4Strategy('20MA 與 60MA 均線雙線交叉系統')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 雙均線交叉 (20/60)</button>
+                <button type="button" onclick="setM4Strategy('RSI 超賣區 (<30) 出現日線底背離買進策略')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ RSI 底背離</button>
+                <button type="button" onclick="setM4Strategy('突破20日新高進場，ATR移動停利停損')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 唐奇安通道突破</button>
+                <button type="button" onclick="setM4Strategy('KD小於20黃金交叉買進，KD大於80死亡交叉賣出')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ KD 逆勢震盪</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">回測標的 (股票 / 指數)</label>
+                <input type="text" id="m4-asset" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" placeholder="例如：0050 / 台股加權 / NVDA">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">回測資料期間</label>
+                <select id="m4-period" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="過去 5 年 (2021 - 2026)">過去 5 年 (完整多空循環)</option>
+                  <option value="過去 3 年 (2023 - 2026)">過去 3 年 (AI牛市段)</option>
+                  <option value="過去 10 年 (2016 - 2026)">過去 10 年 (長週期穩健性)</option>
+                  <option value="過去 1 年 (2025 - 2026)">過去 1 年 (近期市場狀態)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">交易成本假設與濾網</label>
+              <input type="text" id="m4-friction" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" value="單邊手續費 0.1425% (打折) + 證券交易稅 0.3%，設定 200MA 做為多空大方向濾網">
+            </div>
+          </div>
+        </div>
+
+        <!-- 模組 5：投資組合風險管理 -->
+        <div id="module-5" class="module-content hidden flex-1 flex flex-col space-y-4">
+          <div class="border-b border-gray-800 pb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 5 來源規範</span>
+              <span class="text-xs text-gray-400"><i class="fa-solid fa-shield-halved text-teal-400 mr-1"></i>投組體檢與壓力測試</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">投資組合風險管理 (Portfolio Risk Management)</h3>
+            <p class="text-xs text-gray-400 mt-1 italic">
+              「分析我的投資組合：[填入股票代號與配置比例]。找出弱點、曝險過度與隱藏相關性，提出符合風險承受度的再平衡方案，以及因應市場下跌20%的避險策略。」
+            </p>
+          </div>
+
+          <div class="space-y-3 flex-1">
+            <div>
+              <label class="block text-xs font-medium text-gray-300 mb-1">持股代號與配置比例 (合計約 100%)</label>
+              <textarea id="m5-portfolio" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 font-mono" placeholder="2330台積電: 35%, 0050: 25%, 0056高股息: 15%, 美債ETF: 15%, 現金: 10%"></textarea>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                <button type="button" onclick="setM5Portfolio('2330 台積電: 35%
+0050 元大台灣50: 25%
+00878 國泰永續高股息: 15%
+00679B 元大美債20年: 15%
+新台幣定存/現金: 10%')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 經典台股核心配置</button>
+                <button type="button" onclick="setM5Portfolio('NVDA 輝達: 30%
+AAPL 蘋果: 20%
+MSFT 微軟: 20%
+QQQ 納斯達克: 20%
+美金現金: 10%')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 美股科技重倉組合</button>
+                <button type="button" onclick="setM5Portfolio('0050: 40%
+VT 全球股票: 30%
+BNDW 全球債券: 20%
+黃金ETF: 10%')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 全球全天候資產配置</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">個人風險承受度</label>
+                <select id="m5-risk-profile" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="穩健平衡型 (可承受回撤 10-15%)">穩健平衡型 (MDD 10-15%)</option>
+                  <option value="保守防禦型 (可承受回撤 < 8%)">保守防禦型 (MDD < 8%)</option>
+                  <option value="積極成長型 (可承受回撤 20-25%)">積極成長型 (MDD 20-25%)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-300 mb-1">壓力情境測試設定</label>
+                <select id="m5-stress" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                  <option value="大盤重挫 -20% (黑天鵝/突發流動性危機)">基準情境：大盤下跌 -20%</option>
+                  <option value="科技股劇烈估值修正 -30%">科技板塊劇烈殺估值 -30%</option>
+                  <option value="停滯性通膨 (股債齊跌 15%)">股債雙殺與利率走高情境</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 動作按鈕：分析執行 vs 生成提示詞 -->
+        <div class="pt-4 border-t border-gray-800 flex flex-col sm:flex-row gap-2.5">
+          <button onclick="runAnalysis()" class="flex-1 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>執行智能分析並生成報告</span>
+          </button>
+          
+          <button onclick="copyGeneratedPrompt()" class="bg-gray-800 hover:bg-gray-700 text-teal-300 font-medium py-2.5 px-4 rounded-xl border border-gray-700 transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-regular fa-copy"></i>
+            <span>複製此提示詞</span>
+          </button>
+        </div>
+
+        <!-- 即時提示通知 -->
+        <div id="copy-toast" class="hidden mt-3 p-2 text-center text-xs bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 rounded-lg">
+          <i class="fa-solid fa-check mr-1"></i> 已複製優化後的完整提示詞！可直接貼給 ChatGPT / Claude / Gemini。
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 右側 / 智能分析結果與專業報告面板 (佔比 7 格) -->
+    <div class="lg:col-span-7 flex flex-col space-y-5">
+      
+      <!-- 報告預覽容器 -->
+      <div class="bg-gray-900/90 rounded-2xl border border-gray-800 shadow-xl flex-1 flex flex-col overflow-hidden report-card">
+        
+        <!-- 報告抬頭 -->
+        <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between bg-gray-900/60">
+          <div class="flex items-center gap-2.5">
+            <div id="status-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+            <div>
+              <h2 id="report-title" class="text-sm font-bold text-white tracking-wide">AI 投資研報：交易點子深度解析</h2>
+              <p id="report-meta" class="text-[11px] text-gray-400">研究輔助模式 ‧ 後端連線後可啟用 AI 分析</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-2 no-print">
+            <span id="badge-mode" class="text-xs px-2.5 py-1 rounded-md bg-teal-500/10 text-teal-300 border border-teal-500/30">模組 1: 交易點子</span>
+            <button onclick="copyReportText()" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition text-xs flex items-center gap-1" title="複製報告純文字">
+              <i class="fa-regular fa-clone"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 運算 Loading 狀態 -->
+        <div id="loading-spinner" class="hidden p-12 text-center my-auto">
+          <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-teal-500 border-t-transparent mb-4"></div>
+          <p class="text-sm text-teal-400 font-medium">正在解析市場數據、計算技術指標與風控模型...</p>
+          <p class="text-xs text-gray-500 mt-1">演算中：多週期均線 ‧ 盈虧比矩陣 ‧ 隱含波動 ‧ 尾部風險壓力測試</p>
+        </div>
+
+        <!-- 報告實際內容展示區 -->
+        <div id="report-content" class="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar text-sm leading-relaxed text-gray-200">
+          <!-- 初始歡迎與導覽畫面 -->
+          <div id="initial-welcome" class="space-y-4">
+            <div class="bg-gradient-to-r from-teal-950/30 to-blue-950/30 border border-teal-500/20 rounded-xl p-4">
+              <h4 class="font-bold text-teal-300 flex items-center gap-2">
+                <i class="fa-solid fa-sparkles"></i> 歡迎使用 5 大理財交易機器人架構
+              </h4>
+              <p class="text-xs text-gray-300 mt-1.5 leading-relaxed">
+                本系統完全依據您提供的 5 組頂級理財提示詞進行架構建置，涵蓋從<strong>點子發掘、技術面剖析、新聞事件解讀、量化數據回測，到全資產組合風險管控</strong>的一站式流程。
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+              <div class="p-3.5 rounded-xl bg-gray-800/40 border border-gray-800 hover:border-gray-700 transition">
+                <span class="text-xs text-teal-400 font-semibold block mb-1">【提示詞 1】交易點子生成器</span>
+                <p class="text-xs text-gray-400">輸入股票/指數/產業，自動篩選 5 個高勝率交易機會，包含進場價、出場目標、停損點與 R:R 比。</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-800/40 border border-gray-800 hover:border-gray-700 transition">
+                <span class="text-xs text-teal-400 font-semibold block mb-1">【提示詞 2】自動技術分析師</span>
+                <p class="text-xs text-gray-400">拆解日線與週線圖、支撐壓力區、趨勢線、MA 與動能指標，給予明確「買進/持有/賣出」訊號。</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-800/40 border border-gray-800 hover:border-gray-700 transition">
+                <span class="text-xs text-teal-400 font-semibold block mb-1">【提示詞 3】新聞轉交易策略</span>
+                <p class="text-xs text-gray-400">將最新重大財經新聞轉化為短期與長期交易影響，給出預期波動區間與建議部位配置。</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-800/40 border border-gray-800 hover:border-gray-700 transition">
+                <span class="text-xs text-teal-400 font-semibold block mb-1">【提示詞 4】策略回測分析師</span>
+                <p class="text-xs text-gray-400">檢驗均線交叉、RSI背離等策略歷史勝率、獲利因子、最大回撤 (MDD) 與具體優化方向。</p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-800/40 border border-gray-800 hover:border-gray-700 transition md:col-span-2">
+                <span class="text-xs text-teal-400 font-semibold block mb-1">【提示詞 5】投資組合風險管理</span>
+                <p class="text-xs text-gray-400">體檢持股配置比例，檢測產業曝險、隱藏相關性，提供再平衡方案及應對市場 -20% 暴跌避險策略。</p>
+              </div>
+            </div>
+
+            <div class="text-center pt-3">
+              <button onclick="demoM1()" class="px-4 py-2 bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/40 rounded-xl text-xs font-medium transition">
+                <i class="fa-solid fa-play mr-1.5"></i> 一鍵載入範例並生成即時示範研報
+              </button>
+            </div>
+          </div>
+
+          <!-- 動態報告插入容器 -->
+          <div id="dynamic-report" class="space-y-6 hidden"></div>
+        </div>
+
+        <!-- 報告底端動作列 -->
+        <div class="px-5 py-3 border-t border-gray-800 bg-gray-900/40 flex items-center justify-between text-xs text-gray-400 no-print">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-shield-check text-teal-500"></i>
+            <span>風險警語：本網站僅供研究與資訊整理，不保證資料即時性或投資結果；投資決策請自行審慎評估。</span>
+          </div>
+          <button onclick="downloadReportHTML()" class="text-teal-400 hover:text-teal-300 underline text-xs">
+            匯出 HTML 報告
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // ===== 正式網站後端設定 =====
+    // 請填入部署後的 Supabase Edge Function URL。不要把 OpenAI API Key 放在這個 HTML。
+    // 例如：https://YOUR_PROJECT_REF.supabase.co/functions/v1/financial-analysis
+    const AI_API_ENDPOINT = "";
+
+    // 當前選中的 Tab (1~5)
+    let currentTab = 1;
+
+    function switchTab(tabIndex) {
+      currentTab = tabIndex;
+      // 更新按鈕樣式
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.getElementById(`tab-btn-${i}`);
+        const module = document.getElementById(`module-${i}`);
+        if (i === tabIndex) {
+          btn.className = "tab-btn active w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm";
+          btn.querySelector('span:first-child').className = "w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center text-xs font-bold";
+          module.classList.remove('hidden');
+        } else {
+          btn.className = "tab-btn w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-gray-300 hover:bg-gray-800/80 border border-transparent";
+          btn.querySelector('span:first-child').className = "w-6 h-6 rounded-lg bg-gray-800 text-gray-400 flex items-center justify-center text-xs font-bold";
+          module.classList.add('hidden');
+        }
+      }
+
+      // 更新右側 Badge
+      const modeNames = [
+        "模組 1: 交易點子生成",
+        "模組 2: 自動技術分析",
+        "模組 3: 新聞轉策略",
+        "模組 4: 策略量化回測",
+        "模組 5: 投組風險管理"
+      ];
+      document.getElementById('badge-mode').innerText = modeNames[tabIndex - 1];
+    }
+
+    // 快捷輸入按鈕
+    function setM1Target(val) { document.getElementById('m1-target').value = val; }
+    function setM2Symbol(val) { document.getElementById('m2-symbol').value = val; }
+    function setM3Company(val) { document.getElementById('m3-company').value = val; }
+    function setM4Strategy(val) { document.getElementById('m4-strategy').value = val; }
+    function setM5Portfolio(val) { document.getElementById('m5-portfolio').value = val; }
+
+    // 重置所有表單
+    function resetAllForms() {
+      document.getElementById('m1-target').value = '';
+      document.getElementById('m1-notes').value = '';
+      document.getElementById('m2-symbol').value = '';
+      document.getElementById('m2-price').value = '';
+      document.getElementById('m3-company').value = '';
+      document.getElementById('m3-news').value = '';
+      document.getElementById('m4-strategy').value = '';
+      document.getElementById('m4-asset').value = '';
+      document.getElementById('m5-portfolio').value = '';
+      document.getElementById('initial-welcome').classList.remove('hidden');
+      document.getElementById('dynamic-report').classList.add('hidden');
+      document.getElementById('dynamic-report').innerHTML = '';
+      document.getElementById('report-title').innerText = 'AI 投資研報：交易點子深度解析';
+    }
+
+    // 範例快速載入
+    function demoM1() {
+      switchTab(1);
+      setM1Target('台積電 (2330) 與半導體供應鏈');
+      document.getElementById('m1-notes').value = '觀察近期月線乖離率收斂，外資買盤回流，CoWoS產能滿載至2026年。';
+      runAnalysis();
+    }
+
+    // 產生結構化提示詞字串 (對應 5 張照片原汁原味 + 精準強化)
+    function buildPromptText() {
+      let text = "";
+      if (currentTab === 1) {
+        const target = document.getElementById('m1-target').value || "[填入股票/指數/產業]";
+        const tf = document.getElementById('m1-timeframe').value;
+        const rr = document.getElementById('m1-rr').value;
+        const notes = document.getElementById('m1-notes').value;
+        text = `【理財機器人提示詞 1：交易點子生成器】
+` +
+               `「掃描今天的市場，針對 [${target}] 產生 5 個高勝率交易機會。
+` +
+               `設定交易週期為 [${tf}]，要求最低風險報酬比為 [${rr}]。
+` +
+               `包含進場價格、出場目標、停損點與風險報酬比，並根據技術面與基本面因素，說明每個交易機會成立的原因。」` +
+               (notes ? `
+補充市場觀察：${notes}` : "");
+      } else if (currentTab === 2) {
+        const sym = document.getElementById('m2-symbol').value || "[填入股票/代號]";
+        const ma = document.getElementById('m2-ma').value;
+        const osc = document.getElementById('m2-oscillator').value;
+        const p = document.getElementById('m2-price').value;
+        text = `【理財機器人提示詞 2：自動技術分析師】
+` +
+               `「使用日線與週線圖分析 [${sym}]。
+` +
+               `重點檢驗均線 [${ma}] 及動能指標 [${osc}]。
+` +
+               `拆解支撐與壓力區、趨勢線、移動平均線及動能指標，並逐步提供買進／持有／賣出的交易訊號與理由。」` +
+               (p ? `
+當前觀察價格/持倉：${p}` : "");
+      } else if (currentTab === 3) {
+        const comp = document.getElementById('m3-company').value || "[填入公司／產業]";
+        const news = document.getElementById('m3-news').value || "[填入最新重大事件]";
+        const risk = document.getElementById('m3-risk').value;
+        text = `【理財機器人提示詞 3：新聞轉交易策略】
+` +
+               `「整理 [${comp}] 的最新新聞，新聞事件核心為：${news}，
+` +
+               `並轉化為交易影響。部位管理偏好為 [${risk}]。
+` +
+               `說明可能的短期與長期影響、預期價格波動區間，以及建議的部位配置與避險措施。」`;
+      } else if (currentTab === 4) {
+        const strat = document.getElementById('m4-strategy').value || "[填入交易策略，例如均線交叉、RSI 背離]";
+        const asset = document.getElementById('m4-asset').value || "[填入股票／指數]";
+        const period = document.getElementById('m4-period').value;
+        const friction = document.getElementById('m4-friction').value;
+        text = `【理財機器人提示詞 4：策略回測分析師】
+` +
+               `「針對 [${strat}]，在 [${asset}] 過去 [${period}] 的資料上執行回測。
+` +
+               `交易磨擦成本假設：${friction}。
+` +
+               `呈現勝率、獲利因子、最大回撤，以及可提高策略優勢的改進方向。」`;
+      } else if (currentTab === 5) {
+        const port = document.getElementById('m5-portfolio').value || "[填入股票代號與配置比例]";
+        const profile = document.getElementById('m5-risk-profile').value;
+        const stress = document.getElementById('m5-stress').value;
+        text = `【理財機器人提示詞 5：投資組合風險管理】
+` +
+               `「分析我的投資組合：
+${port}
+` +
+               `個人風險承受度為 [${profile}]。
+` +
+               `找出弱點、曝險過度與隱藏相關性，提出符合風險承受度的再平衡方案，以及因應 [${stress}] 的避險策略。」`;
+      }
+      return text;
+    }
+
+    // 複製提示詞
+    function copyGeneratedPrompt() {
+      const text = buildPromptText();
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copy-toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3500);
+      });
+    }
+
+    // 複製報告純文字
+    function copyReportText() {
+      const reportDiv = document.getElementById('dynamic-report');
+      if (reportDiv.classList.contains('hidden') || !reportDiv.innerText.trim()) {
+        alert("目前尚無生成的分析報告，請先點擊「執行智能分析」！");
+        return;
+      }
+      navigator.clipboard.writeText(reportDiv.innerText).then(() => {
+        alert("報告文字已成功複製至剪貼簿！");
+      });
+    }
+
+    // 列印報告
+    function printReport() {
+      window.print();
+    }
+
+    // 匯出獨立 HTML 檔案
+    function downloadReportHTML() {
+      const reportHtml = document.getElementById('dynamic-report').innerHTML;
+      if (!reportHtml.trim()) {
+        alert("請先執行分析生成報告！");
+        return;
+      }
+      const title = document.getElementById('report-title').innerText;
+      const fullDoc = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><title>${title}</title>
+<script src="https://cdn.tailwindcss.com"><\/script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-950 text-gray-100 p-8 max-w-4xl mx-auto font-sans">
+<h1 class="text-2xl font-bold text-teal-400 mb-2">${title}</h1>
+<p class="text-xs text-gray-400 mb-6">生成時間：${new Date().toLocaleString()}</p>
+<div class="space-y-6">${reportHtml}</div>
+</body>
+</html>`;
+      const blob = new Blob([fullDoc], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `理財分析報告_${new Date().toISOString().slice(0,10)}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 執行智能分析：正式版優先呼叫安全後端；尚未設定後端時使用內建示範報告
+    async function runAnalysis() {
+      const loading = document.getElementById('loading-spinner');
+      const welcome = document.getElementById('initial-welcome');
+      const dynamic = document.getElementById('dynamic-report');
+      const reportTitle = document.getElementById('report-title');
+      const reportMeta = document.getElementById('report-meta');
+
+      welcome.classList.add('hidden');
+      dynamic.classList.add('hidden');
+      loading.classList.remove('hidden');
+
+      const nowStr = new Date().toLocaleString('zh-TW', { hour12: false });
+
+      // 若已設定後端，就把提示詞安全送到 Edge Function，由後端呼叫 AI。
+      if (AI_API_ENDPOINT && AI_API_ENDPOINT.startsWith('https://')) {
+        try {
+          const response = await fetch(AI_API_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              module: currentTab,
+              prompt: buildPromptText(),
+              locale: 'zh-TW',
+              requested_at: new Date().toISOString()
+            })
+          });
+
+          if (!response.ok) throw new Error(`後端回應 ${response.status}`);
+          const data = await response.json();
+          const answer = data.answer || data.output || data.result || '';
+          if (!answer) throw new Error('後端未回傳分析內容');
+
+          loading.classList.add('hidden');
+          dynamic.classList.remove('hidden');
+          reportTitle.innerText = `【AI 即時研究】模組 ${currentTab}`;
+          reportMeta.innerText = `分析時間：${nowStr} ‧ 已連線安全後端`;
+          dynamic.innerHTML = `
+            <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
+              <i class="fa-solid fa-link mr-1"></i> 已由安全後端呼叫 AI。若分析涉及最新行情或新聞，仍應核對資料來源與時間。
+            </div>
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 whitespace-pre-wrap leading-7 text-gray-200"></div>`;
+          dynamic.lastElementChild.textContent = answer;
+          return;
+        } catch (err) {
+          console.error(err);
+          reportMeta.innerText = `分析時間：${nowStr} ‧ 後端連線失敗，改用示範模式`;
+        }
+      }
+
+      // 後端尚未設定或連線失敗：保留原本前端示範功能，並明確標示不是即時市場資料。
+      setTimeout(() => {
+        loading.classList.add('hidden');
+        dynamic.classList.remove('hidden');
+        reportMeta.innerText = `分析時間：${nowStr} ‧ 示範模式（非即時行情 / 非 AI 連線）`;
+
+        if (currentTab === 1) renderModule1Report();
+        else if (currentTab === 2) renderModule2Report();
+        else if (currentTab === 3) renderModule3Report();
+        else if (currentTab === 4) renderModule4Report();
+        else if (currentTab === 5) renderModule5Report();
+
+        dynamic.insertAdjacentHTML('afterbegin', `
+          <div class="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200">
+            <i class="fa-solid fa-triangle-exclamation mr-1"></i> 目前為示範模式：以下數值與分析是介面示例，不代表今天的即時市場資料。完成 Supabase Edge Function 設定後，將自動切換為 AI 後端分析。
+          </div>`);
+      }, 450);
+    }
+
+    // ==========================================
+    // 各模組報告生成渲染器
+    // ==========================================
+
+    // 模組 1：交易點子生成報告
+    function renderModule1Report() {
+      const target = document.getElementById('m1-target').value || "半導體核心龍頭族群";
+      const tf = document.getElementById('m1-timeframe').value;
+      const rr = document.getElementById('m1-rr').value;
+      document.getElementById('report-title').innerText = `【交易點子生成】${target} 5 大高勝率策略方案`;
+
+      const html = `
+        <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-teal-400 uppercase tracking-wider"><i class="fa-solid fa-radar mr-1"></i> 全市場掃描摘要</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">週期: ${tf}</span>
+          </div>
+          <p class="text-xs text-gray-300 mt-2">針對 <strong>${target}</strong> 進行量化籌碼與技術型態濾網掃描，嚴格篩選出 5 個具備「風險報酬比 ≥ ${rr}」且技術面與基本面共振的波段與突破交易機會。</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- 交易機會 1 -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-teal-500/40 transition">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-bold font-mono">機會 01</span>
+                <h4 class="font-bold text-white text-sm">均線多頭排列 - 突破前高回測支撐</h4>
+              </div>
+              <span class="text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/30">預估勝率 74% ‧ R:R 1 : 2.8</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 my-3 text-center">
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">建議進場點</span>
+                <span class="text-sm font-bold text-teal-300">支撐回測價區 (0.618)</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">出場目標 (TP)</span>
+                <span class="text-sm font-bold text-emerald-400">+8.5% ~ +12.0%</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">嚴格停損 (SL)</span>
+                <span class="text-sm font-bold text-rose-400">-3.2% (跌破前低)</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed"><strong class="text-gray-300">成立原因：</strong>技術面日線站在所有均線之上，成交量呈「上漲放量、回檔量縮」格局；基本面受惠 AI 先進封裝稼動率超過 95%，營收年增率預期逐季攀升。</p>
+          </div>
+
+          <!-- 交易機會 2 -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-teal-500/40 transition">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-bold font-mono">機會 02</span>
+                <h4 class="font-bold text-white text-sm">箱型震盪下緣支撐 - 假跌破真強彈</h4>
+              </div>
+              <span class="text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/30">預估勝率 68% ‧ R:R 1 : 3.2</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 my-3 text-center">
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">建議進場點</span>
+                <span class="text-sm font-bold text-teal-300">下箱底反轉長下影線</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">出場目標 (TP)</span>
+                <span class="text-sm font-bold text-emerald-400">箱型上緣 (+9.8%)</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">嚴格停損 (SL)</span>
+                <span class="text-sm font-bold text-rose-400">-2.8% (實體K破底)</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed"><strong class="text-gray-300">成立原因：</strong>技術面 RSI 在 32 附近形成牛市底背離，籌碼面大戶持股比率逆勢增加；基本面終端庫存去化完畢，下半年補庫存訂單開始回溫。</p>
+          </div>
+
+          <!-- 交易機會 3 -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-teal-500/40 transition">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-bold font-mono">機會 03</span>
+                <h4 class="font-bold text-white text-sm">高動能壓縮突破 (Volatility Squeeze)</h4>
+              </div>
+              <span class="text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/30">預估勝率 65% ‧ R:R 1 : 2.6</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 my-3 text-center">
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">建議進場點</span>
+                <span class="text-sm font-bold text-teal-300">帶量突破布林上軌當日</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">出場目標 (TP)</span>
+                <span class="text-sm font-bold text-emerald-400">+14.0% (動能波段)</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">嚴格停損 (SL)</span>
+                <span class="text-sm font-bold text-rose-400">-4.5% (跌破20MA中軌)</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed"><strong class="text-gray-300">成立原因：</strong>帶寬壓縮至 3 個月新低後爆量展開，MACD 柱狀圖由負翻正放量；基本面法說會展望調升毛利率指引 1.5-2 個百分點。</p>
+          </div>
+
+          <!-- 交易機會 4 -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-teal-500/40 transition">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-bold font-mono">機會 04</span>
+                <h4 class="font-bold text-white text-sm">除權息填息缺口與法人換手波</h4>
+              </div>
+              <span class="text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/30">預估勝率 71% ‧ R:R 1 : 2.5</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 my-3 text-center">
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">建議進場點</span>
+                <span class="text-sm font-bold text-teal-300">填息缺口守穩第2日</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">出場目標 (TP)</span>
+                <span class="text-sm font-bold text-emerald-400">+7.2% ~ +10.0%</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">嚴格停損 (SL)</span>
+                <span class="text-sm font-bold text-rose-400">-3.0% (封閉除息起跌點)</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed"><strong class="text-gray-300">成立原因：</strong>高股息 ETF 定期審核成分股資金被動買盤進駐，殖利率具備下檔防禦性，投信連續買超 5 個交易日以上。</p>
+          </div>
+
+          <!-- 交易機會 5 -->
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-teal-500/40 transition">
+            <div class="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-teal-500/20 text-teal-300 text-xs font-bold font-mono">機會 05</span>
+                <h4 class="font-bold text-white text-sm">跨市場對衝配對交易 (Pair Trading)</h4>
+              </div>
+              <span class="text-xs text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-500/30">預估勝率 78% ‧ R:R 1 : 3.5</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 my-3 text-center">
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">建議進場點</span>
+                <span class="text-sm font-bold text-teal-300">價差偏離度 > 2 個標準差</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">出場目標 (TP)</span>
+                <span class="text-sm font-bold text-emerald-400">均值回歸歷史中位數</span>
+              </div>
+              <div class="p-2 rounded bg-gray-800/80 border border-gray-700">
+                <span class="text-[10px] text-gray-400 block">嚴格停損 (SL)</span>
+                <span class="text-sm font-bold text-rose-400">價差擴大至 3 個標準差</span>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 leading-relaxed"><strong class="text-gray-300">成立原因：</strong>做多龍頭核心股、放空二線落後補跌個股（或反向期貨），消除大盤 Beta 風險，純粹獲取產業龍頭的 Alpha 定價溢價。</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('dynamic-report').innerHTML = html;
+    }
+
+    // 模組 2：自動技術分析報告
+    function renderModule2Report() {
+      const sym = document.getElementById('m2-symbol').value || "2330 台積電";
+      const ma = document.getElementById('m2-ma').value;
+      const osc = document.getElementById('m2-oscillator').value;
+      const price = document.getElementById('m2-price').value || "當前價格區間運行中";
+      document.getElementById('report-title').innerText = `【技術分析研報】${sym} 多週期日週線訊號解析`;
+
+      const html = `
+        <!-- 綜合評級與訊號卡 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-950/40 to-gray-900 border border-emerald-500/30 text-center">
+            <span class="text-xs text-gray-400 block">系統綜合交易訊號</span>
+            <span class="text-2xl font-black text-emerald-400 my-1 block"><i class="fa-solid fa-circle-arrow-up mr-1"></i> 強力買進 (Strong Buy)</span>
+            <span class="text-[11px] text-emerald-300">多方趨勢確立 ‧ 均線排列發散</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-gray-800/50 border border-gray-700 text-center">
+            <span class="text-xs text-gray-400 block">日線波段趨勢</span>
+            <span class="text-xl font-bold text-teal-300 my-1 block">強勢多頭排列</span>
+            <span class="text-[11px] text-gray-400">價格守於 20MA(月線) 之上</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-gray-800/50 border border-gray-700 text-center">
+            <span class="text-xs text-gray-400 block">週線長期趨勢</span>
+            <span class="text-xl font-bold text-blue-400 my-1 block">大級別上升通道</span>
+            <span class="text-[11px] text-gray-400">創歷史波段新高後健康整理</span>
+          </div>
+        </div>
+
+        <!-- 關鍵支撐與壓力區 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <h4 class="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-up-down"></i> 關鍵支撐與壓力位拆解 (Key Levels)
+          </h4>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between p-2.5 rounded bg-rose-950/20 border border-rose-500/20 text-xs">
+              <span class="text-rose-300 font-medium">【主要壓力區 R2】整數大關與籌碼套牢解套賣壓</span>
+              <span class="font-mono font-bold text-rose-400">+5.5% ~ +7.2% 區間 (歷史高點阻力)</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded bg-amber-950/20 border border-amber-500/20 text-xs">
+              <span class="text-amber-300 font-medium">【次要壓力區 R1】前波箱頂密集換手區</span>
+              <span class="font-mono font-bold text-amber-400">+2.3% ~ +3.0% (短線獲利結賣點)</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded bg-gray-800 text-xs font-mono font-bold text-teal-300">
+              <span class="text-gray-300 font-sans">【現況參考基準點】${price}</span>
+              <span>基期多空分水嶺</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded bg-emerald-950/20 border border-emerald-500/20 text-xs">
+              <span class="text-emerald-300 font-medium">【主要支撐區 S1】20MA月均線與跳空缺口下緣</span>
+              <span class="font-mono font-bold text-emerald-400">-2.0% ~ -2.5% (第一波加碼點)</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded bg-blue-950/20 border border-blue-500/20 text-xs">
+              <span class="text-blue-300 font-medium">【強烈結構防守 S2】60MA季線與上升趨勢軌道下軌</span>
+              <span class="font-mono font-bold text-blue-400">-5.0% ~ -6.2% (多方防守底線)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 均線與動能指標詳細拆解 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h4 class="text-xs font-semibold text-teal-400 mb-2 flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-line"></i> 移動平均線狀態 (${ma})
+            </h4>
+            <ul class="text-xs text-gray-300 space-y-2 leading-relaxed">
+              <li>• <strong>5MA / 20MA：</strong>短天期與中天期呈現黃金交叉，均線斜率呈正向 45 度向上延伸。</li>
+              <li>• <strong>60MA (季線)：</strong>長期扣抵低檔區，生命線持續攀升，提供強勁中期支撐。</li>
+              <li>• <strong>乖離率檢測：</strong>當前日線與 20MA 乖離率約 +3.8%，未進入極端超買警戒區（通常 >8% 需警戒），買盤追價意願仍屬健康。</li>
+            </ul>
+          </div>
+
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+            <h4 class="text-xs font-semibold text-teal-400 mb-2 flex items-center gap-1.5">
+              <i class="fa-solid fa-wave-square"></i> 動能與震盪指標 (${osc})
+            </h4>
+            <ul class="text-xs text-gray-300 space-y-2 leading-relaxed">
+              <li>• <strong>RSI 指標：</strong>14日 RSI 數值為 62.4，處於強勢多頭震盪區間（50-70），且並未出現高檔頂背離特徵。</li>
+              <li>• <strong>MACD：</strong>DIF 與 MACD 位於零軸上方，柱狀紅柱持續擴大，顯示多方動能正在重新匯聚。</li>
+              <li>• <strong>成交量型態：</strong>突破壓力區時成交量放大逾 1.4 倍，確認為有效突破而非假突破。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 交易操作策略步驟建議 -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-teal-950/20 to-blue-950/20 border border-teal-500/20">
+          <h4 class="text-xs font-bold text-teal-300 mb-2"><i class="fa-solid fa-clipboard-check mr-1.5"></i> 逐步操作建議與交易紀律</h4>
+          <div class="space-y-1.5 text-xs text-gray-300">
+            <p>1. <strong>空手者策略：</strong>切忌盤中過度追高，可於回測 20MA 支撐區（S1）分兩批建立 15-20% 底倉。</p>
+            <p>2. <strong>持股者策略：</strong>維持「持有（Hold）」評級，以跌破 20MA 月線作為移動停利（Trailing Stop）參考基準。</p>
+            <p>3. <strong>風控停損點：</strong>若帶量長黑摜破季線 S2 支撐，且連續 2 日無法站回，則建議全數出場防禦。</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('dynamic-report').innerHTML = html;
+    }
+
+    // 模組 3：新聞轉交易策略報告
+    function renderModule3Report() {
+      const comp = document.getElementById('m3-company').value || "科技龍頭與半導體供應鏈";
+      const news = document.getElementById('m3-news').value || "重大事件催化：全球先進製程擴產加速、終端AI伺服器需求持續超預期，帶動供應鏈評價重估。";
+      const risk = document.getElementById('m3-risk').value;
+      document.getElementById('report-title').innerText = `【新聞轉策略研報】${comp} 事件驅動與部位配置`;
+
+      const html = `
+        <!-- 新聞事件核心整理 -->
+        <div class="bg-gray-800/60 p-4 rounded-xl border border-gray-700">
+          <div class="flex items-center justify-between pb-2 border-b border-gray-700">
+            <span class="text-xs font-semibold text-teal-400 uppercase tracking-wider"><i class="fa-solid fa-newspaper mr-1"></i> 新聞事件核心萃取</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-teal-500/20 text-teal-300">標的：${comp}</span>
+          </div>
+          <p class="text-xs text-gray-200 mt-2 leading-relaxed"><strong>事件摘要：</strong>${news}</p>
+        </div>
+
+        <!-- 影響週期矩陣 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-gray-900 border border-gray-800">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <h4 class="font-bold text-white text-sm">短期市場影響 (1 - 10 個交易日)</h4>
+            </div>
+            <ul class="text-xs text-gray-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>市場情緒定價：</strong>新聞公佈初期將迅速引發高頻交易與散戶追價情緒，早盤易出現情緒性溢價開高。</li>
+              <li>• <strong>法人籌碼動態：</strong>外資與投信可能在早盤利用散戶追價進行短線「隔日沖換手」或逢高調節。</li>
+              <li>• <strong>隱含波動率 (IV)：</strong>衍生性商品選擇權 IV 快速上衝，隔日可能面臨波動率均值回歸。</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-gray-900 border border-gray-800">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <h4 class="font-bold text-white text-sm">長期結構影響 (1 - 4 個季度)</h4>
+            </div>
+            <ul class="text-xs text-gray-300 space-y-1.5 leading-relaxed">
+              <li>• <strong>營收與 EPS 實質重估：</strong>將實質反映於下半年財報獲利預估，外資券商有望集體上修目標價 12-18%。</li>
+              <li>• <strong>產業護城河深化：</strong>龍頭定價權大幅提高，進一步壓制競爭對手市占率，形成正向飛輪效應。</li>
+              <li>• <strong>資本支出 (CAPEX)：</strong>供應鏈設備廠與耗材協力廠將同步受惠，形成中長線多頭母子連鎖行情。</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 價格波動區間與敏感度模型 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <h4 class="text-xs font-semibold text-teal-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-area"></i> 預期價格波動區間 (Price Range Projection)
+          </h4>
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="p-3 rounded-lg bg-rose-950/30 border border-rose-500/30">
+              <span class="text-[10px] text-gray-400 block">利空測試下限 (Bear Case)</span>
+              <span class="text-sm font-bold text-rose-400">-5.0% ~ -7.5%</span>
+              <span class="text-[10px] text-gray-400 block mt-1">短線利多出盡利潤回吐</span>
+            </div>
+            <div class="p-3 rounded-lg bg-teal-950/30 border border-teal-500/30">
+              <span class="text-[10px] text-gray-400 block">基準波動中位 (Base Case)</span>
+              <span class="text-sm font-bold text-teal-300">+3.5% ~ +6.5%</span>
+              <span class="text-[10px] text-gray-400 block mt-1">消化賣壓後穩健墊高</span>
+            </div>
+            <div class="p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/30">
+              <span class="text-[10px] text-gray-400 block">強勢突破目標 (Bull Case)</span>
+              <span class="text-sm font-bold text-emerald-400">+10.0% ~ +15.5%</span>
+              <span class="text-[10px] text-gray-400 block mt-1">軋空與法人追單共振</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 部位配置與防禦避險指引 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-semibold text-teal-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-scale-balanced"></i> 建議部位配置方案 (${risk})
+            </h4>
+          </div>
+          <div class="space-y-2 text-xs text-gray-300">
+            <div class="flex justify-between items-center py-1 border-b border-gray-800">
+              <span>第一階段（試單建倉）：</span>
+              <span class="font-bold text-white">配置總資金 8% - 10%，待開盤 30 分鐘洗盤後進場</span>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-gray-800">
+              <span>第二階段（加碼確認）：</span>
+              <span class="font-bold text-white">若站穩開盤高點或量增回測不破，加碼 10% - 15%</span>
+            </div>
+            <div class="flex justify-between items-center py-1">
+              <span>衍生避險策略：</span>
+              <span class="font-bold text-teal-300">買進等權重個股認售權證 (Put) 或反向ETF 5% 防範大盤系統性回檔</span>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('dynamic-report').innerHTML = html;
+    }
+
+    // 模組 4：策略回測分析師報告
+    function renderModule4Report() {
+      const strat = document.getElementById('m4-strategy').value || "均線雙線交叉系統 (20MA/60MA)";
+      const asset = document.getElementById('m4-asset').value || "加權指數 / 0050 ETF";
+      const period = document.getElementById('m4-period').value;
+      const friction = document.getElementById('m4-friction').value;
+      document.getElementById('report-title').innerText = `【量化回測研報】${strat} 歷史實證分析`;
+
+      const html = `
+        <!-- 回測核心KPI卡片 -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-[11px] text-gray-400 block">歷史回測勝率 (Win Rate)</span>
+            <span class="text-2xl font-black text-emerald-400 my-1 block font-mono">63.8%</span>
+            <span class="text-[10px] text-gray-400">總交易筆數：86 筆</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-[11px] text-gray-400 block">獲利因子 (Profit Factor)</span>
+            <span class="text-2xl font-black text-teal-300 my-1 block font-mono">2.14</span>
+            <span class="text-[10px] text-emerald-400">總獲利 / 總虧損 > 2.0 優異</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-[11px] text-gray-400 block">歷史最大回撤 (MDD)</span>
+            <span class="text-2xl font-black text-rose-400 my-1 block font-mono">-14.2%</span>
+            <span class="text-[10px] text-gray-400">遠低於同期買進持有 -28.5%</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-[11px] text-gray-400 block">年化報酬率 (CAGR)</span>
+            <span class="text-2xl font-black text-blue-400 my-1 block font-mono">17.6%</span>
+            <span class="text-[10px] text-teal-300">夏普比率 Sharpe: 1.35</span>
+          </div>
+        </div>
+
+        <!-- 回測參數與情境說明 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-semibold text-teal-400 uppercase tracking-wider">
+              <i class="fa-solid fa-server mr-1"></i> 回測配置環境
+            </h4>
+            <span class="text-xs text-gray-400">${period}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
+            <p>• <strong>回測標的：</strong>${asset}</p>
+            <p>• <strong>策略核心：</strong>${strat}</p>
+            <p>• <strong>磨擦損耗：</strong>${friction}</p>
+            <p>• <strong>基準比對：</strong>買進持有策略 (Buy & Hold) 同期報酬為 +14.2%</p>
+          </div>
+        </div>
+
+        <!-- 盈虧權益曲線走勢特徵 -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <h4 class="text-xs font-semibold text-teal-400 mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line"></i> 權益曲線表現與多空階段診斷
+          </h4>
+          <div class="space-y-2 text-xs text-gray-300 leading-relaxed">
+            <div class="p-2.5 rounded bg-gray-800/60 border border-gray-700">
+              <strong class="text-teal-300">大趨勢多頭行情 (如 2023-2024 AI狂潮)：</strong>策略表現極度亮眼，能夠完整吃到 80% 以上的主升段行情，獲利因子高達 3.2。
+            </div>
+            <div class="p-2.5 rounded bg-gray-800/60 border border-gray-700">
+              <strong class="text-amber-300">無方向箱型震盪期 (如 2022 下半年整理段)：</strong>頻繁出現均線交纏，產生「巴頭包尾」的假訊號摩擦成本，此階段勝率降至 42%。
+            </div>
+            <div class="p-2.5 rounded bg-gray-800/60 border border-gray-700">
+              <strong class="text-blue-300">系統性空頭殺戮期：</strong>均線及時死亡交叉出場，成功躲避大盤 20% 以上的重挫回檔，保全本金。
+            </div>
+          </div>
+        </div>
+
+        <!-- 策略改進與獲利優勢提升方向 (圖片核心要求) -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-teal-950/30 to-blue-950/30 border border-teal-500/30">
+          <h4 class="text-xs font-bold text-teal-300 mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-lightbulb"></i> 提高策略優勢的 4 大關鍵改進方向
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-300">
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="font-bold text-white block mb-1">1. 引入 ATR 波動度動態停損利</span>
+              <p class="text-gray-400">改用 2 倍 ATR (真實波動區間) 取代固定百分比，自動依據市場波動率調整持倉呼吸空間，可降低被無謂洗出場機率 18%。</p>
+            </div>
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="font-bold text-white block mb-1">2. 增設 200MA 長期多空濾網</span>
+              <p class="text-gray-400">當價格位於 200MA 之下時，嚴禁做多任何均線金叉訊號，僅保留空手或逆向避險，可直接過濾掉 60% 的震盪磨損期假突破。</p>
+            </div>
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="font-bold text-white block mb-1">3. 成交量與 RSI 濾鏡確認</span>
+              <p class="text-gray-400">交叉當日成交量必須大於 20 日均量的 1.2 倍，且 RSI > 50 才能觸發進場，能將綜合勝率自 63.8% 進一步推升至 71.5%。</p>
+            </div>
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="font-bold text-white block mb-1">4. 分批金字塔式加減碼</span>
+              <p class="text-gray-400">訊號初發建立 50% 部位，突破前高再加碼 50%；若轉弱則分批停利，避免全進全出帶來的滑點與心理波動衝擊。</p>
+            </div>
+          </div>
+        </div>
+      `;
+      document.getElementById('dynamic-report').innerHTML = html;
+    }
+
+    // 模組 5：投資組合風險管理報告
+    function renderModule5Report() {
+      const port = document.getElementById('m5-portfolio').value || "2330 台積電: 35%, 0050: 25%, 0056: 15%, 美債: 15%, 現金: 10%";
+      const profile = document.getElementById('m5-risk-profile').value;
+      const stress = document.getElementById('m5-stress').value;
+      document.getElementById('report-title').innerText = `【投組風控研報】全資產弱點診斷與壓力測試`;
+
+      const html = `
+        <!-- 風險診斷總評 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="p-3.5 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-xs text-gray-400 block">整體投資組合健康評分</span>
+            <span class="text-2xl font-black text-teal-400 my-1 block font-mono">82 / 100</span>
+            <span class="text-[11px] text-teal-300">整體結構良好，具備適度防禦性</span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-xs text-gray-400 block">估計組合 Beta 值 (對標大盤)</span>
+            <span class="text-2xl font-black text-amber-400 my-1 block font-mono">1.18</span>
+            <span class="text-[10px] text-gray-400">波動略高於整體市場</span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-gray-800/60 border border-gray-700 text-center">
+            <span class="text-xs text-gray-400 block">預估年化股息殖利率</span>
+            <span class="text-2xl font-black text-emerald-400 my-1 block font-mono">4.35%</span>
+            <span class="text-[10px] text-emerald-300">現金流續航力充沛</span>
+          </div>
+        </div>
+
+        <!-- 弱點與隱藏相關性剖析 (圖片核心要求) -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <h4 class="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation"></i> 弱點、曝險過度與隱藏相關性診斷
+          </h4>
+          <div class="space-y-2 text-xs text-gray-300">
+            <div class="p-2.5 rounded bg-rose-950/20 border border-rose-500/20">
+              <strong class="text-rose-300">1. 單一個股與權值穿透隱藏過度曝險：</strong>
+              <p class="text-gray-400 mt-1">
+                組合中直接持有台積電，但同時持有 0050 ETF（其中台積電權重高達近 50%）。經穿透透視分析後，<strong>整體投資組合實質對台積電的總曝險高達 47.5%</strong>，科技半導體產業集中度突破 65%，一旦半導體產業遭逢週期景氣回檔，抗跌力將大幅降低。
+              </p>
+            </div>
+
+            <div class="p-2.5 rounded bg-amber-950/20 border border-amber-500/20">
+              <strong class="text-amber-300">2. 隱藏相關性 (Hidden Correlation)：</strong>
+              <p class="text-gray-400 mt-1">
+                高股息 ETF (如 0056/00878) 的成分股近年亦大幅納入 AI PC、伺服器組裝等電子科技股，導致「高股息」與「市值型 0050」的滾動相關係數高達 0.88，並未能提供投資人預期中的跨產業避險效果。
+              </p>
+            </div>
+
+            <div class="p-2.5 rounded bg-blue-950/20 border border-blue-500/20">
+              <strong class="text-blue-300">3. 利率與匯率曝險失衡：</strong>
+              <p class="text-gray-400 mt-1">
+                美債 ETF 雖然具備配息與防禦功能，但若未進行匯率避險，新台幣大幅升值時將產生匯損侵蝕債息回報。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 符合風險承受度的再平衡方案 (圖片核心要求) -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-sliders"></i> 符合 [${profile}] 之再平衡方案 (Rebalancing)
+            </h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead>
+                <tr class="border-b border-gray-800 text-gray-400">
+                  <th class="py-2">資產類別 / 標的</th>
+                  <th class="py-2">現行配置</th>
+                  <th class="py-2 text-teal-300">建議再平衡比例</th>
+                  <th class="py-2">調整動作與配置理由</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800 text-gray-300">
+                <tr>
+                  <td class="py-2 font-medium text-white">台積電 (2330)</td>
+                  <td class="py-2">35%</td>
+                  <td class="py-2 font-bold text-teal-300">20% ~ 25%</td>
+                  <td class="py-2 text-gray-400">獲利了結部分持股，降低個股穿透度風險</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-medium text-white">0050 / 市值型ETF</td>
+                  <td class="py-2">25%</td>
+                  <td class="py-2 font-bold text-teal-300">25%</td>
+                  <td class="py-2 text-gray-400">維持核心配置，作為台股長線成長引擎</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-medium text-white">非科技防禦股/高股息</td>
+                  <td class="py-2">15%</td>
+                  <td class="py-2 font-bold text-teal-300">15%</td>
+                  <td class="py-2 text-gray-400">適度轉入金融、電信、傳產必需消費類以分散相關性</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-medium text-white">美債20年 / 投資級債</td>
+                  <td class="py-2">15%</td>
+                  <td class="py-2 font-bold text-teal-300">20%</td>
+                  <td class="py-2 text-gray-400">小幅增持 5%，強化降息循環中的資本利得與固定現金流</td>
+                </tr>
+                <tr>
+                  <td class="py-2 font-medium text-white">高利定存 / 戰略現金</td>
+                  <td class="py-2">10%</td>
+                  <td class="py-2 font-bold text-teal-300">15%</td>
+                  <td class="py-2 text-gray-400">提升防禦流動性，保留市場回檔 20% 時低接撿便宜子彈</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 應對市場下跌 20% 的壓力測試與避險策略 (圖片核心要求) -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-teal-950/30 to-rose-950/30 border border-teal-500/30">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-virus text-teal-400"></i> 因應【${stress}】的立即可行避險策略
+            </h4>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-rose-900/40 text-rose-300 border border-rose-500/30">壓力測試評估</span>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="text-[10px] text-gray-400 block">無防護未調整前預估跌幅</span>
+              <span class="text-base font-bold text-rose-400 font-mono">-23.6%</span>
+              <span class="text-[10px] text-gray-400">因Beta高，回撤超加大盤</span>
+            </div>
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="text-[10px] text-gray-400 block">經再平衡配置後預估跌幅</span>
+              <span class="text-base font-bold text-amber-400 font-mono">-13.8%</span>
+              <span class="text-[10px] text-gray-400">債券與現金吸收 40% 衝擊</span>
+            </div>
+            <div class="p-2.5 rounded bg-gray-900/80 border border-gray-800">
+              <span class="text-[10px] text-gray-400 block">啟動期權對沖後預估跌幅</span>
+              <span class="text-base font-bold text-emerald-400 font-mono">-6.2% 以內</span>
+              <span class="text-[10px] text-emerald-300">下檔風險被完全鎖定</span>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-xs text-gray-300">
+            <p>• <strong>工具 1（價外賣權保護）：</strong>利用總資金 1-2% 購買台指選擇權或台積電價外 5-7% 的 Put (買進看跌認售權證)，建立不對稱獲利保護傘。</p>
+            <p>• <strong>工具 2（反向 ETF 或期貨動態空單）：</strong>跌破關鍵季線時，以 5-10% 部位放空微型台指期貨或買進台灣50反1 (00632R)，進行 Delta 中性對沖。</p>
+            <p>• <strong>工具 3（網格分批低接機制）：</strong>將 15% 戰略現金劃分為三等份，分別於大盤下跌 -10%、-15%、-20% 時嚴守紀律向下分批回補優質核心龍頭股。</p>
+          </div>
+        </div>
+      `;
+      document.getElementById('dynamic-report').innerHTML = html;
+    }
+
+    // 初始載入預設為 Tab 1
+    window.onload = function() {
+      switchTab(1);
+    };
+  </script>
+</body>
+</html>
