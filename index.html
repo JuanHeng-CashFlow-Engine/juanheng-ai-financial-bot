@@ -181,10 +181,10 @@
       </div>
 
       <!-- 表單輸入區塊 -->
-      <div class="bg-gray-900/90 rounded-2xl p-5 border border-gray-800 shadow-xl flex-1 flex flex-col">
+      <div class="bg-gray-900/90 rounded-2xl p-5 border border-gray-800 shadow-xl flex flex-col self-start w-full">
         
         <!-- 模組 1：交易點子生成器 -->
-        <div id="module-1" class="module-content flex-1 flex flex-col space-y-4">
+        <div id="module-1" class="module-content flex flex-col space-y-4">
           <div class="border-b border-gray-800 pb-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 1 來源規範</span>
@@ -196,7 +196,7 @@
             </p>
           </div>
 
-          <div class="space-y-3 flex-1">
+          <div class="space-y-3">
             <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">目標標的 (股票 / 指數 / 產業)</label>
               <input type="text" id="m1-target" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 (2330) 或 美股半導體 / AI伺服器產業">
@@ -236,7 +236,7 @@
         </div>
 
         <!-- 模組 2：自動技術分析師 -->
-        <div id="module-2" class="module-content hidden flex-1 flex flex-col space-y-4">
+        <div id="module-2" class="module-content hidden flex flex-col space-y-4">
           <div class="border-b border-gray-800 pb-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 2 來源規範</span>
@@ -248,7 +248,7 @@
             </p>
           </div>
 
-          <div class="space-y-3 flex-1">
+          <div class="space-y-3">
             <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">分析標的代號／名稱</label>
               <input type="text" id="m2-symbol" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：2330 台積電 或 AAPL 蘋果">
@@ -287,7 +287,7 @@
         </div>
 
         <!-- 模組 3：新聞轉交易策略 -->
-        <div id="module-3" class="module-content hidden flex-1 flex flex-col space-y-4">
+        <div id="module-3" class="module-content hidden flex flex-col space-y-4">
           <div class="border-b border-gray-800 pb-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 3 來源規範</span>
@@ -299,7 +299,7 @@
             </p>
           </div>
 
-          <div class="space-y-3 flex-1">
+          <div class="space-y-3">
             <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">關注公司／產業</label>
               <input type="text" id="m3-company" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 / 先進封裝 CoWoS 或 美國聯準會降息循環">
@@ -327,7 +327,7 @@
         </div>
 
         <!-- 模組 4：策略回測分析師 -->
-        <div id="module-4" class="module-content hidden flex-1 flex flex-col space-y-4">
+        <div id="module-4" class="module-content hidden flex flex-col space-y-4">
           <div class="border-b border-gray-800 pb-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 4 來源規範</span>
@@ -339,7 +339,7 @@
             </p>
           </div>
 
-          <div class="space-y-3 flex-1">
+          <div class="space-y-3">
             <div>
               <label class="block text-xs font-medium text-gray-300 mb-1">交易策略邏輯</label>
               <input type="text" id="m4-strategy" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：20MA 與 60MA 黃金交叉買進、死亡交叉賣出">
@@ -375,7 +375,7 @@
         </div>
 
         <!-- 模組 5：投資組合風險管理 -->
-        <div id="module-5" class="module-content hidden flex-1 flex flex-col space-y-4">
+        <div id="module-5" class="module-content hidden flex flex-col space-y-4">
           <div class="border-b border-gray-800 pb-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-semibold uppercase tracking-wider text-teal-400">提示詞 5 來源規範</span>
@@ -387,7 +387,7 @@
             </p>
           </div>
 
-          <div class="space-y-3 flex-1">
+          <div class="space-y-3">
             <div>
               <label class="block text-xs font-medium text-gray-300 mb-1">持股代號與配置比例 (合計約 100%)</label>
               <textarea id="m5-portfolio" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 font-mono" placeholder="2330台積電: 35%, 0050: 25%, 0056高股息: 15%, 美債ETF: 15%, 現金: 10%"></textarea>
@@ -431,7 +431,7 @@ BNDW 全球債券: 20%
         </div>
 
         <!-- 動作按鈕：分析執行 vs 生成提示詞 -->
-        <div class="pt-4 border-t border-gray-800 flex flex-col sm:flex-row gap-2.5">
+        <div class="mt-4 pt-4 border-t border-gray-800 flex flex-col sm:flex-row gap-2.5">
           <button onclick="runAnalysis()" class="flex-1 bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 text-sm">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
             <span>執行智能分析並生成報告</span>
