@@ -894,7 +894,7 @@ ${port}
                     <div><span class="text-gray-500 block">13週線</span><b>${formatNum(w.ma13,2)}</b></div>
                     <div><span class="text-gray-500 block">26週線</span><b>${formatNum(w.ma26,2)}</b></div>
                     <div><span class="text-gray-500 block">52週線</span><b>${formatNum(w.ma52,2)}</b></div>
-                    <div><span class="text-gray-500 block">週RSI14</span><b>${formatNum(w.rsi14,1)}</b></div>
+                    <div><span class="text-gray-500 block">週 RSI14</span><b>${formatNum(w.rsi14,1)}</b></div>
                     <div><span class="text-gray-500 block">週MACD</span><b>${w.macd ? formatNum(w.macd.hist,3) : '—'}</b></div>
                   </div>
                 </div>
@@ -969,7 +969,7 @@ ${port}
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">勝率</span><b>${formatPct(a.win_rate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('win_rate',a.win_rate)}</div></div>
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">獲利因子</span><b>${formatNum(a.profit_factor,2)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('profit_factor',a.profit_factor)}</div></div>
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">最大回撤</span><b>${formatPct(a.max_drawdown)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('mdd',a.max_drawdown)}</div></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">平均每年成長（CAGR）</span><b>${formatPct(a.cagr)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('cagr',a.cagr)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">CAGR</span><b>${formatPct(a.cagr)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('cagr',a.cagr)}</div></div>
               </div>
 
               <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-3">
@@ -991,12 +991,12 @@ ${port}
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">權重合計</span><b>${formatPct(a.total_weight)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">資金集中程度</span><b>${formatNum(a.concentration_hhi,3)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('hhi',a.concentration_hhi)}</div></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">如果市場跌 20%</span><b>${formatPct(a.stress_market_minus20_estimate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('stress',a.stress_market_minus20_estimate)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">HHI</span><b>${formatNum(a.concentration_hhi,3)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('hhi',a.concentration_hhi)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">市場 -20% 情境</span><b>${formatPct(a.stress_market_minus20_estimate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('stress',a.stress_market_minus20_estimate)}</div></div>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">資金最多的標的</div>${tops || '—'}</div>
-                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">走勢很像的標的</div>${cors || '資料不足'}</div>
+                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">高相關性</div>${cors || '資料不足'}</div>
               </div>
               ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
             </div>`;
