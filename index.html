@@ -217,6 +217,9 @@
                   <option value="中長線趨勢佈局 (1-3 個月)">中長線趨勢 (1-3 個月)</option>
                   <option value="價值型長期存股 (6 個月以上)">價值型長線存股</option>
                 </select>
+                <div id="m1-style-hint" class="text-[10px] text-gray-500 mt-1.5">
+                  波段：20/60 日均線、支撐壓力、量價與 ATR，回測最多持有 20 個交易日。
+                </div>
               </div>
               <div>
                 <label class="block text-xs font-medium text-gray-300 mb-1">最低風險報酬比（賠 1 元，想賺幾元） (R:R)</label>
@@ -592,6 +595,30 @@ BNDW 全球債券: 20%
       ];
       document.getElementById('badge-mode').innerText = modeNames[tabIndex - 1];
     }
+
+    function updateM1StyleHint() {
+      const sel = document.getElementById('m1-timeframe');
+      const hint = document.getElementById('m1-style-hint');
+      if (!sel || !hint) return;
+      const v = sel.value;
+      if (v.includes('短線')) {
+        hint.textContent = '短線：5/20 日均線、量能與動能優先，停損較緊，回測最多持有 3 個交易日。';
+      } else if (v.includes('中長線')) {
+        hint.textContent = '中長線：20/60 日均線與中期趨勢優先，停損較寬，回測最多持有 60 個交易日。';
+      } else if (v.includes('價值型') || v.includes('長期存股')) {
+        hint.textContent = '長線存股：60/240 日均線與分批布局優先，容許較大波動，回測最多持有 120 個交易日。';
+      } else {
+        hint.textContent = '波段：20/60 日均線、支撐壓力、量價與 ATR，回測最多持有 20 個交易日。';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const sel = document.getElementById('m1-timeframe');
+      if (sel) {
+        sel.addEventListener('change', updateM1StyleHint);
+        updateM1StyleHint();
+      }
+    });
 
     // 共用標的：輸入一次後，模組 1～4 自動共用
     function syncGlobalTarget(val) {
