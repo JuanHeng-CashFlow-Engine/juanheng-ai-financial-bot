@@ -389,14 +389,21 @@
 
           <div class="space-y-3">
             <div>
-              <label class="block text-xs font-medium text-gray-300 mb-1">持股代號與配置比例 (合計約 100%)</label>
-              <textarea id="m5-portfolio" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 font-mono" placeholder="2330台積電: 35%, 0050: 25%, 0056高股息: 15%, 美債ETF: 15%, 現金: 10%"></textarea>
+              <label class="block text-xs font-medium text-gray-300 mb-1">持股代號與配置（可輸入比例或金額）</label>
+              <textarea id="m5-portfolio" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500 font-mono" placeholder="比例範例：2330: 35%&#10;00878: 25%&#10;現金: 40%&#10;&#10;金額範例：2330: 500000&#10;00878: 300000&#10;現金: 200000"></textarea>
+              <div class="text-[11px] text-gray-500 mt-1.5">
+                可全部輸入「%」或全部輸入「金額」。若用金額，系統會自動加總並換算各標的比例。請不要同時混用兩種格式。
+              </div>
               <div class="flex flex-wrap gap-1.5 mt-2">
                 <button type="button" onclick="setM5Portfolio('2330 台積電: 35%
 0050 元大台灣50: 25%
 00878 國泰永續高股息: 15%
 00679B 元大美債20年: 15%
 新台幣定存/現金: 10%')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 經典台股核心配置</button>
+                <button type="button" onclick="setM5Portfolio('2330 台積電: 500000
+00878 國泰永續高股息: 300000
+00981A 主動統一台股增長: 200000
+現金: 200000')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">+ 金額輸入範例</button>
                 <button type="button" onclick="setM5Portfolio('NVDA 輝達: 30%
 AAPL 蘋果: 20%
 MSFT 微軟: 20%
@@ -984,16 +991,48 @@ ${port}
         }
 
         if (moduleNo === 5) {
+          if (a.error) {
+            return `
+              <div class="space-y-3">
+                <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
+                <div class="bg-rose-950/30 border border-rose-500/30 rounded-lg p-3 text-sm text-rose-200">${esc(a.error)}</div>
+              </div>`;
+          }
+
           const tops = Array.isArray(a.top_holdings) ? a.top_holdings.map(x => `<div>${esc(x.name)}：${formatPct(x.weight)}</div>`).join('') : '';
           const cors = Array.isArray(a.strongest_correlations) ? a.strongest_correlations.map(x => `<div>${esc(x.a)} ↔ ${esc(x.b)}：${formatNum(x.corr,2)}</div>`).join('') : '';
+          const holdings = Array.isArray(a.holdings) ? a.holdings.map(x => `
+            <div class="flex items-center justify-between gap-3 py-1.5 border-b border-gray-800 last:border-0">
+              <span class="text-gray-300">${esc(x.name)}</span>
+              <div class="text-right">
+                ${typeof x.amount==='number' ? '<div class="text-white font-medium">'+x.amount.toLocaleString('zh-TW')+'</div>' : ''}
+                <div class="text-teal-300 text-[11px]">${formatPct(x.weight)}</div>
+              </div>
+            </div>`).join('') : '';
+
           return `
             <div class="space-y-3">
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
+
+              ${a.input_mode==='amount' ? `
+                <div class="bg-teal-950/20 border border-teal-500/20 rounded-lg p-3">
+                  <div class="text-[11px] text-gray-500">投資組合總金額</div>
+                  <div class="text-xl font-black text-white font-mono">${typeof a.total_amount==='number' ? a.total_amount.toLocaleString('zh-TW') : '—'}</div>
+                  <div class="text-[11px] text-gray-500 mt-1">系統已自動把每筆金額換算成比例。</div>
+                </div>` : ''}
+
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">權重合計</span><b>${formatPct(a.total_weight)}</b></div>
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">HHI</span><b>${formatNum(a.concentration_hhi,3)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('hhi',a.concentration_hhi)}</div></div>
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">市場 -20% 情境</span><b>${formatPct(a.stress_market_minus20_estimate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('stress',a.stress_market_minus20_estimate)}</div></div>
               </div>
+
+              ${holdings ? `
+                <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3 text-xs">
+                  <div class="font-semibold text-white mb-2">持股比例</div>
+                  ${holdings}
+                </div>` : ''}
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">資金最多的標的</div>${tops || '—'}</div>
                 <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">高相關性</div>${cors || '資料不足'}</div>
