@@ -742,153 +742,196 @@ ${port}
       loading.classList.remove('hidden');
 
       const nowStr = new Date().toLocaleString('zh-TW', { hour12: false });
+      const esc = (v) => String(v ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      const formatNum = (n, digits = 2) => {
+        if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+        return n.toLocaleString('zh-TW', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+      };
+      const formatVol = (n) => {
+        if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+        if (n >= 100000000) return (n / 100000000).toFixed(2) + ' 億';
+        if (n >= 10000) return (n / 10000).toFixed(2) + ' 萬';
+        return n.toLocaleString('zh-TW');
+      };
+      const formatTime = (iso) => {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return esc(iso);
+        return d.toLocaleString('zh-TW', { hour12: false });
+      };
+      const sparkSvg = (arr, up) => {
+        const pts = Array.isArray(arr) ? arr.filter(v => typeof v === 'number' && Number.isFinite(v)) : [];
+        if (pts.length < 2) return '<div class="h-10 flex items-center text-[10px] text-gray-600">趨勢資料不足</div>';
+        const min = Math.min(...pts), max = Math.max(...pts), span = Math.max(max - min, 0.000001);
+        const w = 220, h = 42, pad = 2;
+        const coords = pts.map((v,i) => {
+          const x = pad + (i/(pts.length-1))*(w-pad*2);
+          const y = pad + (1-(v-min)/span)*(h-pad*2);
+          return x.toFixed(1)+','+y.toFixed(1);
+        }).join(' ');
+        const stroke = up ? '#fb7185' : '#34d399';
+        return `<svg viewBox="0 0 ${w} ${h}" class="w-full h-10" preserveAspectRatio="none" aria-label="日內小型趨勢線">
+          <polyline points="${coords}" fill="none" stroke="${stroke}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+        </svg>`;
+      };
 
-      // 若已設定後端，就把提示詞安全送到 Edge Function，由後端呼叫 AI。
-      if (AI_API_ENDPOINT && AI_API_ENDPOINT.startsWith('https://')) {
-        try {
-          const response = await fetch(AI_API_ENDPOINT, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              module: currentTab,
-              prompt: buildPromptText(),
-              locale: 'zh-TW',
-              requested_at: new Date().toISOString()
-            })
-          });
-
-          if (!response.ok) throw new Error(`後端回應 ${response.status}`);
-          const data = await response.json();
-          const answer = data.answer || data.output || data.result || '';
-          if (!answer) throw new Error('後端未回傳分析內容');
-
-          loading.classList.add('hidden');
-          dynamic.classList.remove('hidden');
-          reportTitle.innerText = `【AI 即時研究】模組 ${currentTab}`;
-          reportMeta.innerText = `分析時間：${nowStr} ‧ 已連線 AI＋最新公開市場資料`;
-          const snapshots = Array.isArray(data.market_snapshots) ? data.market_snapshots : [];
-          const formatNum = (n, digits = 2) => {
-            if (typeof n !== 'number' || Number.isNaN(n)) return '—';
-            return n.toLocaleString('zh-TW', { maximumFractionDigits: digits, minimumFractionDigits: digits });
-          };
-          const formatVol = (n) => {
-            if (typeof n !== 'number' || Number.isNaN(n)) return '—';
-            if (n >= 100000000) return (n / 100000000).toFixed(2) + ' 億';
-            if (n >= 10000) return (n / 10000).toFixed(2) + ' 萬';
-            return n.toLocaleString('zh-TW');
-          };
-          const formatTime = (iso) => {
-            if (!iso) return '—';
-            const d = new Date(iso);
-            if (Number.isNaN(d.getTime())) return iso;
-            return d.toLocaleString('zh-TW', { hour12: false });
-          };
-
-          const cards = snapshots.map((s) => {
-            const pct = typeof s.change_pct === 'number' ? s.change_pct : null;
-            const pctClass = pct === null ? 'text-gray-200' : (pct > 0 ? 'text-rose-400' : (pct < 0 ? 'text-emerald-400' : 'text-gray-200'));
-            const sign = pct !== null && pct > 0 ? '+' : '';
-            const marketLabel = s.market === 'TW' ? '台股' : (s.market === 'US' ? '美股' : (s.market || '市場'));
-            return `
-              <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <div class="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <div class="text-xs text-gray-400">${marketLabel} · ${s.symbol || ''}</div>
-                    <div class="text-sm font-bold text-white mt-0.5">${s.display_name || s.symbol || '標的'}</div>
-                  </div>
-                  <div class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${s.currency || ''}</div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <div>
-                    <div class="text-[10px] text-gray-500">現價</div>
-                    <div class="text-xl font-black text-white font-mono">${formatNum(s.price, 2)}</div>
-                  </div>
-                  <div>
-                    <div class="text-[10px] text-gray-500">漲跌幅</div>
-                    <div class="text-xl font-black font-mono ${pctClass}">${pct === null ? '—' : sign + formatNum(pct, 2) + '%'}</div>
-                  </div>
-                  <div>
-                    <div class="text-[10px] text-gray-500">成交量</div>
-                    <div class="text-sm font-bold text-gray-200 font-mono">${formatVol(s.volume)}</div>
-                  </div>
-                  <div>
-                    <div class="text-[10px] text-gray-500">資料時間</div>
-                    <div class="text-xs font-medium text-gray-300">${formatTime(s.market_time)}</div>
-                  </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-800 text-[10px] text-gray-500">
-                  ${s.source || '公開行情來源'} · ${s.delayed_note || '可能延遲'}
-                </div>
-              </div>`;
-          }).join('');
-
-          dynamic.innerHTML = `
-            <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
-              <i class="fa-solid fa-link mr-1"></i> 已由安全後端呼叫 AI，並搜尋最新公開行情／新聞。公開來源可能延遲，不能視為交易所即時報價。
-            </div>
-            ${snapshots.length ? `
-              <div class="mb-4">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-gauge-high text-teal-400 mr-1.5"></i>行情儀表板</h3>
-                  <span class="text-[10px] text-gray-500">台股 / 美股統一卡片</span>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${cards}</div>
-              </div>` : `
-              <div class="bg-amber-950/25 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 mb-4">
-                尚未辨識到可查詢的台股或美股代號，因此沒有顯示行情卡片。
-              </div>`}
-            <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 whitespace-pre-wrap leading-7 text-gray-200"></div>`;
-          dynamic.lastElementChild.textContent = answer;
-
-          if (Array.isArray(data.sources) && data.sources.length) {
-            const sourceBox = document.createElement('div');
-            sourceBox.className = 'bg-gray-900 border border-gray-800 rounded-xl p-4 mt-4 text-xs';
-            const title = document.createElement('div');
-            title.className = 'font-semibold text-teal-300 mb-2';
-            title.textContent = '資料來源';
-            sourceBox.appendChild(title);
-
-            data.sources.forEach((url, idx) => {
-              const a = document.createElement('a');
-              a.href = url;
-              a.target = '_blank';
-              a.rel = 'noopener noreferrer';
-              a.className = 'block text-blue-300 hover:text-blue-200 break-all mb-1';
-              a.textContent = `${idx + 1}. ${url}`;
-              sourceBox.appendChild(a);
-            });
-            dynamic.appendChild(sourceBox);
-          }
-
-          const modeNote = document.createElement('div');
-          modeNote.className = 'text-[11px] text-gray-500 mt-3';
-          modeNote.textContent = '資料模式：最新公開網路資料（可能延遲），非交易所授權即時報價。';
-          dynamic.appendChild(modeNote);
-
-          return;
-        } catch (err) {
-          console.error(err);
-          reportMeta.innerText = `分析時間：${nowStr} ‧ 後端連線失敗，改用示範模式`;
-        }
-      }
-
-      // 後端尚未設定或連線失敗：保留原本前端示範功能，並明確標示不是即時市場資料。
-      setTimeout(() => {
+      if (!AI_API_ENDPOINT || !AI_API_ENDPOINT.startsWith('https://')) {
         loading.classList.add('hidden');
         dynamic.classList.remove('hidden');
-        reportMeta.innerText = `分析時間：${nowStr} ‧ 示範模式（非即時行情 / 非 AI 連線）`;
+        reportMeta.innerText = `分析時間：${nowStr} ‧ 後端網址尚未設定`;
+        dynamic.innerHTML = '<div class="bg-rose-950/30 border border-rose-500/40 rounded-xl p-4 text-sm text-rose-200">尚未設定 Supabase Edge Function 網址。</div>';
+        return;
+      }
 
-        if (currentTab === 1) renderModule1Report();
-        else if (currentTab === 2) renderModule2Report();
-        else if (currentTab === 3) renderModule3Report();
-        else if (currentTab === 4) renderModule4Report();
-        else if (currentTab === 5) renderModule5Report();
+      try {
+        const response = await fetch(AI_API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            module: currentTab,
+            prompt: buildPromptText(),
+            locale: 'zh-TW',
+            requested_at: new Date().toISOString()
+          })
+        });
 
-        dynamic.insertAdjacentHTML('afterbegin', `
-          <div class="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200">
-            <i class="fa-solid fa-triangle-exclamation mr-1"></i> 目前為示範模式：以下數值與分析是介面示例，不代表今天的即時市場資料。完成 Supabase Edge Function 設定後，將自動切換為 AI 後端分析。
-          </div>`);
-      }, 450);
+        const raw = await response.text();
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+        if (!response.ok) {
+          throw new Error((data && data.error) ? data.error : `後端回應 HTTP ${response.status}`);
+        }
+
+        const answer = data.answer || data.output || data.result || '';
+        const snapshots = Array.isArray(data.market_snapshots) ? data.market_snapshots : [];
+
+        loading.classList.add('hidden');
+        dynamic.classList.remove('hidden');
+
+        const aiOk = data.ai_ok !== false;
+        reportTitle.innerText = `【AI 市場研究】模組 ${currentTab}`;
+        reportMeta.innerText = aiOk
+          ? `分析時間：${nowStr} ‧ 行情＋AI 後端已連線`
+          : `分析時間：${nowStr} ‧ 行情已連線／AI 尚未成功`;
+
+        const cards = snapshots.map((s) => {
+          const pct = typeof s.change_pct === 'number' ? s.change_pct : null;
+          const up = pct === null ? true : pct >= 0;
+          const pctClass = pct === null ? 'text-gray-200' : (pct > 0 ? 'text-rose-400' : (pct < 0 ? 'text-emerald-400' : 'text-gray-200'));
+          const arrow = pct === null ? '•' : (pct > 0 ? '▲' : (pct < 0 ? '▼' : '■'));
+          const sign = pct !== null && pct > 0 ? '+' : '';
+          const marketLabel = s.market === 'TW' ? '台股' : (s.market === 'US' ? '美股' : (s.market || '市場'));
+          const rel = typeof s.relative_volume === 'number' ? s.relative_volume : null;
+          const relText = rel === null ? '—' : rel.toFixed(2) + '×';
+          const relClass = rel !== null && rel >= 1.2 ? 'text-amber-300' : 'text-gray-200';
+
+          return `
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div>
+                  <div class="text-xs text-gray-400">${esc(marketLabel)} · ${esc(s.symbol || '')}</div>
+                  <div class="text-sm font-bold text-white mt-0.5">${esc(s.display_name || s.symbol || '標的')}</div>
+                </div>
+                <div class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${esc(s.currency || '')}</div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <div class="text-[10px] text-gray-500">現價</div>
+                  <div class="text-xl font-black text-white font-mono">${formatNum(s.price, 2)}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-gray-500">漲跌幅</div>
+                  <div class="text-xl font-black font-mono ${pctClass}">${arrow} ${pct === null ? '—' : sign + formatNum(pct, 2) + '%'}</div>
+                </div>
+              </div>
+
+              <div class="mt-2">${sparkSvg(s.sparkline, up)}</div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">前收</span><b>${formatNum(s.previous_close, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">開盤</span><b>${formatNum(s.open, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最高</span><b>${formatNum(s.day_high, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最低</span><b>${formatNum(s.day_low, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最高</span><b>${formatNum(s.high_52w, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最低</span><b>${formatNum(s.low_52w, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">成交量</span><b>${formatVol(s.volume)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">相對均量</span><b class="${relClass}">${relText}</b></div>
+              </div>
+
+              <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pt-2 border-t border-gray-800 text-[10px] text-gray-500">
+                <span>資料時間：${formatTime(s.market_time)}</span>
+                <span>${esc(s.source || '公開行情來源')} · ${esc(s.delayed_note || '可能延遲')}</span>
+              </div>
+            </div>`;
+        }).join('');
+
+        const statusBox = aiOk
+          ? `<div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
+               <i class="fa-solid fa-link mr-1"></i> 行情與 AI 後端已連線。公開行情可能延遲，非交易所授權逐筆即時報價。
+             </div>`
+          : `<div class="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200 mb-4">
+               <i class="fa-solid fa-triangle-exclamation mr-1"></i> 行情後端已連線，但 AI 分析尚未成功。
+               <div class="mt-1 text-amber-100 break-all">錯誤：${esc(data.ai_error || '未知 AI 錯誤')}</div>
+             </div>`;
+
+        dynamic.innerHTML = `
+          ${statusBox}
+          ${snapshots.length ? `
+            <div class="mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-gauge-high text-teal-400 mr-1.5"></i>行情儀表板</h3>
+                <span class="text-[10px] text-gray-500">前收／開高低／52週／相對均量／趨勢線</span>
+              </div>
+              <div class="grid grid-cols-1 gap-3">${cards}</div>
+            </div>` : `
+            <div class="bg-amber-950/25 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 mb-4">
+              尚未辨識到可查詢的台股或美股代號，因此沒有行情卡片。請輸入例如 00878、2330、NVDA、AAPL。
+            </div>`}
+          <div id="ai-answer-box" class="bg-gray-900 border border-gray-800 rounded-xl p-5 whitespace-pre-wrap leading-7 text-gray-200"></div>`;
+
+        document.getElementById('ai-answer-box').textContent = answer || (aiOk ? 'AI 未回傳文字內容。' : '行情已載入；請依上方 AI 錯誤訊息處理。');
+
+        if (Array.isArray(data.sources) && data.sources.length) {
+          const sourceBox = document.createElement('div');
+          sourceBox.className = 'bg-gray-900 border border-gray-800 rounded-xl p-4 mt-4 text-xs';
+          const title = document.createElement('div');
+          title.className = 'font-semibold text-teal-300 mb-2';
+          title.textContent = '新聞／研究資料來源';
+          sourceBox.appendChild(title);
+          data.sources.forEach((url, idx) => {
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.className = 'block text-blue-300 hover:text-blue-200 break-all mb-1';
+            a.textContent = `${idx + 1}. ${url}`;
+            sourceBox.appendChild(a);
+          });
+          dynamic.appendChild(sourceBox);
+        }
+
+        const modeNote = document.createElement('div');
+        modeNote.className = 'text-[11px] text-gray-500 mt-3';
+        modeNote.textContent = '版本：Market Dashboard v2 · 最新公開行情（可能延遲），非交易所授權即時報價。';
+        dynamic.appendChild(modeNote);
+        return;
+
+      } catch (err) {
+        console.error(err);
+        loading.classList.add('hidden');
+        dynamic.classList.remove('hidden');
+        reportMeta.innerText = `分析時間：${nowStr} ‧ 後端連線錯誤`;
+        reportTitle.innerText = '【連線診斷】Supabase Edge Function';
+        dynamic.innerHTML = `
+          <div class="bg-rose-950/30 border border-rose-500/40 rounded-xl p-4 text-sm text-rose-200">
+            <div class="font-bold mb-2"><i class="fa-solid fa-circle-xmark mr-1"></i>目前沒有切回示範數值，因為這會掩蓋真正的錯誤。</div>
+            <div class="text-xs break-all">後端錯誤：${esc(err?.message || err)}</div>
+            <div class="text-xs text-gray-400 mt-2">請確認 Supabase financial-analysis 為 ACTIVE、OPENAI_API_KEY Secret 已儲存，以及重新整理本頁。</div>
+          </div>`;
+        return;
+      }
     }
 
     // ==========================================
