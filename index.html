@@ -835,12 +835,9 @@ ${port}
                 <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">停損點</span><b class="text-rose-300">${formatNum(x.stop_loss,2)}</b></div>
                 <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">風險報酬比（賠 1 元，想賺幾元）</span><b class="text-teal-300">1 : ${formatNum(x.risk_reward,2)}</b></div>
               </div>
-              <div class="mt-3 bg-gray-900/70 border border-gray-800 rounded-lg p-3">
-                <div class="text-xs font-semibold text-teal-300 mb-1">說明</div>
-                <div class="text-xs text-gray-300 leading-5">
-                  這個做法是在價格接近重要位置時才觀察進場。重點是：
-                  ${esc(x.trigger || x.technical_reason || '等待價格與成交量出現較明確訊號。')}
-                </div>
+              <div class="mt-3 text-xs text-gray-300">
+                <span class="text-gray-500">重點：</span>
+                ${esc(x.trigger || x.technical_reason || '等待價格與成交量出現較明確訊號。')}
               </div>
               ${x.note ? '<div class="text-[10px] text-gray-500 mt-2">'+esc(x.note)+'</div>' : ''}
             </div>`).join('') : '';
@@ -848,6 +845,9 @@ ${port}
             <div class="space-y-3">
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '交易點子')}</div>
               <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
+              <div class="text-xs text-gray-400 bg-gray-800/40 border border-gray-700 rounded-lg p-2">
+                說明：下面 5 個都是「符合條件才考慮」的交易情境；條件沒有出現，就先不進場。
+              </div>
               ${ideas}
             </div>`;
         }
