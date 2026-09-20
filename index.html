@@ -808,21 +808,79 @@ ${port}
         }
 
         if (moduleNo === 2) {
-          const m = a.metrics || {};
+          const d = a.daily || {};
+          const w = a.weekly || {};
+          const supports = Array.isArray(a.support_levels) ? a.support_levels.map(x => `
+            <div class="flex justify-between gap-3"><span class="text-gray-500">${esc(x.label)}</span><b class="text-emerald-300">${formatNum(x.value,2)}</b></div>`).join('') : '';
+          const resistances = Array.isArray(a.resistance_levels) ? a.resistance_levels.map(x => `
+            <div class="flex justify-between gap-3"><span class="text-gray-500">${esc(x.label)}</span><b class="text-rose-300">${formatNum(x.value,2)}</b></div>`).join('') : '';
+          const reasons = Array.isArray(a.reasons) ? a.reasons.map((x,i)=>`<li>${esc(x)}</li>`).join('') : '';
+          const actions = Array.isArray(a.action_reasons) ? a.action_reasons.map((x,i)=>`<li>${esc(x)}</li>`).join('') : '';
+
           return `
-            <div class="space-y-3">
-              <div class="text-sm font-bold text-teal-300">${esc(a.title || '技術分析')}</div>
-              <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA5</span><b>${formatNum(m.ma5,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA20</span><b>${formatNum(m.ma20,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA60</span><b>${formatNum(m.ma60,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">RSI14</span><b>${formatNum(m.rsi14,1)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">支撐</span><b>${formatNum(m.support,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">壓力</span><b>${formatNum(m.resistance,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MACD</span><b>${m.macd ? formatNum(m.macd.hist,3) : '—'}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA240</span><b>${formatNum(m.ma240,2)}</b></div>
+            <div class="space-y-4">
+              <div>
+                <div class="text-sm font-bold text-teal-300">${esc(a.title || '日線＋週線技術分析')}</div>
+                <div class="text-xs text-gray-300 mt-1">${esc(a.summary || '')}</div>
               </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
+                  <div class="font-semibold text-white mb-2">日線分析</div>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div><span class="text-gray-500 block">趨勢</span><b>${esc(d.trend || '—')}</b></div>
+                    <div><span class="text-gray-500 block">趨勢線</span><b>${esc(d.trend_line || '—')}</b></div>
+                    <div><span class="text-gray-500 block">MA5</span><b>${formatNum(d.ma5,2)}</b></div>
+                    <div><span class="text-gray-500 block">MA20</span><b>${formatNum(d.ma20,2)}</b></div>
+                    <div><span class="text-gray-500 block">MA60</span><b>${formatNum(d.ma60,2)}</b></div>
+                    <div><span class="text-gray-500 block">MA120</span><b>${formatNum(d.ma120,2)}</b></div>
+                    <div><span class="text-gray-500 block">MA240</span><b>${formatNum(d.ma240,2)}</b></div>
+                    <div><span class="text-gray-500 block">RSI14</span><b>${formatNum(d.rsi14,1)}</b></div>
+                    <div><span class="text-gray-500 block">MACD</span><b>${d.macd ? formatNum(d.macd.hist,3) : '—'}</b></div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
+                  <div class="font-semibold text-white mb-2">週線分析</div>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div><span class="text-gray-500 block">趨勢</span><b>${esc(w.trend || '—')}</b></div>
+                    <div><span class="text-gray-500 block">趨勢線</span><b>${esc(w.trend_line || '—')}</b></div>
+                    <div><span class="text-gray-500 block">5週線</span><b>${formatNum(w.ma5,2)}</b></div>
+                    <div><span class="text-gray-500 block">13週線</span><b>${formatNum(w.ma13,2)}</b></div>
+                    <div><span class="text-gray-500 block">26週線</span><b>${formatNum(w.ma26,2)}</b></div>
+                    <div><span class="text-gray-500 block">52週線</span><b>${formatNum(w.ma52,2)}</b></div>
+                    <div><span class="text-gray-500 block">週RSI14</span><b>${formatNum(w.rsi14,1)}</b></div>
+                    <div><span class="text-gray-500 block">週MACD</span><b>${w.macd ? formatNum(w.macd.hist,3) : '—'}</b></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-3 text-xs">
+                  <div class="font-semibold text-emerald-300 mb-2">支撐區</div>
+                  <div class="space-y-1">${supports || '資料不足'}</div>
+                </div>
+                <div class="bg-rose-950/20 border border-rose-500/20 rounded-xl p-3 text-xs">
+                  <div class="font-semibold text-rose-300 mb-2">壓力區</div>
+                  <div class="space-y-1">${resistances || '資料不足'}</div>
+                </div>
+              </div>
+
+              <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <div class="font-semibold text-white">買進／持有／賣出訊號</div>
+                  <div class="text-xs px-2 py-1 rounded bg-teal-950/40 text-teal-300 border border-teal-500/30">${esc(a.signal || '—')}</div>
+                </div>
+                <div class="text-xs text-gray-300">
+                  <div class="text-gray-500 mb-1">訊號理由</div>
+                  <ul class="list-disc pl-5 space-y-1">${reasons || '<li>資料不足</li>'}</ul>
+                </div>
+                <div class="text-xs text-gray-300 mt-3">
+                  <div class="text-gray-500 mb-1">操作條件</div>
+                  <ul class="list-disc pl-5 space-y-1">${actions || '<li>資料不足</li>'}</ul>
+                </div>
+              </div>
+
               ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
             </div>`;
         }
