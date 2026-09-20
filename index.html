@@ -876,8 +876,19 @@ ${port}
                <div class="mt-1 text-amber-100 break-all">錯誤：${esc(data.ai_error || '未知 AI 錯誤')}</div>
              </div>`;
 
+        const usageBox = data.usage ? `
+          <div class="bg-blue-950/20 border border-blue-500/20 rounded-xl p-3 text-xs text-blue-100 mb-4">
+            <div class="font-semibold mb-1"><i class="fa-solid fa-gauge-simple-high mr-1"></i>API 花費保護已啟用</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-blue-200">
+              <div>此裝置今日：${data.usage.client_count} / ${data.usage.client_limit} 次</div>
+              <div>全站今日：${data.usage.global_count} / ${data.usage.global_limit} 次</div>
+            </div>
+            <div class="mt-1 text-[10px] text-gray-400">每日自動重置；超過上限時行情仍可使用，但不再呼叫付費 AI。</div>
+          </div>` : '';
+
         dynamic.innerHTML = `
           ${statusBox}
+          ${usageBox}
           ${snapshots.length ? `
             <div class="mb-4">
               <div class="flex items-center justify-between mb-2">
