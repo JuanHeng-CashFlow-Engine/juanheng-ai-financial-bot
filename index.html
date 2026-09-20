@@ -747,6 +747,7 @@ ${port}
         if (typeof n !== 'number' || Number.isNaN(n)) return '—';
         return n.toLocaleString('zh-TW', { maximumFractionDigits: digits, minimumFractionDigits: digits });
       };
+      const formatPct = (n) => typeof n === 'number' ? (n * 100).toFixed(2) + '%' : '—';
       const formatVol = (n) => {
         if (typeof n !== 'number' || Number.isNaN(n)) return '—';
         if (n >= 100000000) return (n / 100000000).toFixed(2) + ' 億';
@@ -775,13 +776,98 @@ ${port}
         </svg>`;
       };
 
-      if (!AI_API_ENDPOINT || !AI_API_ENDPOINT.startsWith('https://')) {
-        loading.classList.add('hidden');
-        dynamic.classList.remove('hidden');
-        reportMeta.innerText = `分析時間：${nowStr} ‧ 後端網址尚未設定`;
-        dynamic.innerHTML = '<div class="bg-rose-950/30 border border-rose-500/40 rounded-xl p-4 text-sm text-rose-200">尚未設定 Supabase Edge Function 網址。</div>';
-        return;
-      }
+      const renderAnalysis = (moduleNo, a) => {
+        if (!a) return '<div class="text-gray-400">沒有分析結果。</div>';
+
+        if (moduleNo === 1) {
+          const ideas = Array.isArray(a.ideas) ? a.ideas.map((x, i) => `
+            <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
+              <div class="font-bold text-white mb-1">${i+1}. ${esc(x.name)}</div>
+              <div class="text-xs text-gray-300">條件：${esc(x.condition)}</div>
+              <div class="text-xs text-rose-300 mt-1">風險：${esc(x.risk)}</div>
+            </div>`).join('') : '';
+          return `
+            <div class="space-y-3">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '交易點子')}</div>
+              <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
+              ${ideas}
+            </div>`;
+        }
+
+        if (moduleNo === 2) {
+          const m = a.metrics || {};
+          return `
+            <div class="space-y-3">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '技術分析')}</div>
+              <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA5</span><b>${formatNum(m.ma5,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA20</span><b>${formatNum(m.ma20,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA60</span><b>${formatNum(m.ma60,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">RSI14</span><b>${formatNum(m.rsi14,1)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">支撐</span><b>${formatNum(m.support,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">壓力</span><b>${formatNum(m.resistance,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MACD</span><b>${m.macd ? formatNum(m.macd.hist,3) : '—'}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">MA240</span><b>${formatNum(m.ma240,2)}</b></div>
+              </div>
+              ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
+            </div>`;
+        }
+
+        if (moduleNo === 3) {
+          const rows = Array.isArray(a.news) ? a.news.map((x,i) => `
+            <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
+              <div class="text-xs text-gray-500 mb-1">${esc(x.pubDate || '')} · ${esc(x.source || '')}</div>
+              <div class="font-medium text-white">${esc(x.title)}</div>
+              <div class="text-xs mt-1 ${x.impact==='偏正面'?'text-rose-300':x.impact==='偏負面'?'text-emerald-300':'text-gray-400'}">規則判讀：${esc(x.impact)}</div>
+              ${x.link ? '<a class="text-xs text-blue-300 break-all mt-1 block" target="_blank" rel="noopener noreferrer" href="'+esc(x.link)+'">查看原文</a>' : ''}
+            </div>`).join('') : '';
+          return `
+            <div class="space-y-3">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '新聞規則分析')}</div>
+              <div class="text-[11px] text-gray-500">${esc(a.method || '')}</div>
+              ${rows || '<div class="text-gray-400 text-sm">目前沒有取得相關新聞。</div>'}
+            </div>`;
+        }
+
+        if (moduleNo === 4) {
+          return `
+            <div class="space-y-3">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '策略回測')}</div>
+              ${a.summary ? '<div class="text-xs text-gray-300">'+esc(a.summary)+'</div>' : ''}
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">交易次數</span><b>${esc(a.trades ?? '—')}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">勝率</span><b>${formatPct(a.win_rate)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">獲利因子</span><b>${formatNum(a.profit_factor,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">最大回撤</span><b>${formatPct(a.max_drawdown)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">CAGR</span><b>${formatPct(a.cagr)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">期末倍數</span><b>${formatNum(a.final_multiple,2)}x</b></div>
+              </div>
+              <div class="text-[11px] text-gray-500">${esc(a.method || '')}</div>
+            </div>`;
+        }
+
+        if (moduleNo === 5) {
+          const tops = Array.isArray(a.top_holdings) ? a.top_holdings.map(x => `<div>${esc(x.name)}：${formatPct(x.weight)}</div>`).join('') : '';
+          const cors = Array.isArray(a.strongest_correlations) ? a.strongest_correlations.map(x => `<div>${esc(x.a)} ↔ ${esc(x.b)}：${formatNum(x.corr,2)}</div>`).join('') : '';
+          return `
+            <div class="space-y-3">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">權重合計</span><b>${formatPct(a.total_weight)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">集中度 HHI</span><b>${formatNum(a.concentration_hhi,3)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">市場 -20% 情境</span><b>${formatPct(a.stress_market_minus20_estimate)}</b></div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">最大持倉</div>${tops || '—'}</div>
+                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">較高相關性</div>${cors || '資料不足'}</div>
+              </div>
+              ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
+            </div>`;
+        }
+
+        return '<pre class="whitespace-pre-wrap text-xs">'+esc(JSON.stringify(a,null,2))+'</pre>';
+      };
 
       try {
         const response = await fetch(AI_API_ENDPOINT, {
@@ -798,22 +884,13 @@ ${port}
         const raw = await response.text();
         let data = {};
         try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+        if (!response.ok) throw new Error(data.error || `後端回應 HTTP ${response.status}`);
 
-        if (!response.ok) {
-          throw new Error((data && data.error) ? data.error : `後端回應 HTTP ${response.status}`);
-        }
-
-        const answer = data.answer || data.output || data.result || '';
         const snapshots = Array.isArray(data.market_snapshots) ? data.market_snapshots : [];
-
         loading.classList.add('hidden');
         dynamic.classList.remove('hidden');
-
-        const aiOk = data.ai_ok !== false;
-        reportTitle.innerText = `【AI 市場研究】模組 ${currentTab}`;
-        reportMeta.innerText = aiOk
-          ? `分析時間：${nowStr} ‧ 行情＋AI 後端已連線`
-          : `分析時間：${nowStr} ‧ 行情已連線／AI 尚未成功`;
+        reportTitle.innerText = `【程式量化分析】模組 ${currentTab}`;
+        reportMeta.innerText = `分析時間：${nowStr} ‧ Rule Engine v1（無 OpenAI API）`;
 
         const cards = snapshots.map((s) => {
           const pct = typeof s.change_pct === 'number' ? s.change_pct : null;
@@ -823,9 +900,6 @@ ${port}
           const sign = pct !== null && pct > 0 ? '+' : '';
           const marketLabel = s.market === 'TW' ? '台股' : (s.market === 'US' ? '美股' : (s.market || '市場'));
           const rel = typeof s.relative_volume === 'number' ? s.relative_volume : null;
-          const relText = rel === null ? '—' : rel.toFixed(2) + '×';
-          const relClass = rel !== null && rel >= 1.2 ? 'text-amber-300' : 'text-gray-200';
-
           return `
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
               <div class="flex items-start justify-between gap-3 mb-3">
@@ -835,113 +909,56 @@ ${port}
                 </div>
                 <div class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${esc(s.currency || '')}</div>
               </div>
-
               <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <div class="text-[10px] text-gray-500">現價</div>
-                  <div class="text-xl font-black text-white font-mono">${formatNum(s.price, 2)}</div>
-                </div>
-                <div>
-                  <div class="text-[10px] text-gray-500">漲跌幅</div>
-                  <div class="text-xl font-black font-mono ${pctClass}">${arrow} ${pct === null ? '—' : sign + formatNum(pct, 2) + '%'}</div>
-                </div>
+                <div><div class="text-[10px] text-gray-500">現價</div><div class="text-xl font-black text-white font-mono">${formatNum(s.price,2)}</div></div>
+                <div><div class="text-[10px] text-gray-500">漲跌幅</div><div class="text-xl font-black font-mono ${pctClass}">${arrow} ${pct===null?'—':sign+formatNum(pct,2)+'%'}</div></div>
               </div>
-
-              <div class="mt-2">${sparkSvg(s.sparkline, up)}</div>
-
+              <div class="mt-2">${sparkSvg(s.sparkline,up)}</div>
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-xs">
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">前收</span><b>${formatNum(s.previous_close, 2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">開盤</span><b>${formatNum(s.open, 2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最高</span><b>${formatNum(s.day_high, 2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最低</span><b>${formatNum(s.day_low, 2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最高</span><b>${formatNum(s.high_52w, 2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最低</span><b>${formatNum(s.low_52w, 2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">前收</span><b>${formatNum(s.previous_close,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">開盤</span><b>${formatNum(s.open,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最高</span><b>${formatNum(s.day_high,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">今日最低</span><b>${formatNum(s.day_low,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最高</span><b>${formatNum(s.high_52w,2)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">52週最低</span><b>${formatNum(s.low_52w,2)}</b></div>
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">成交量</span><b>${formatVol(s.volume)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">相對均量</span><b class="${relClass}">${relText}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="block text-[10px] text-gray-500">相對均量</span><b>${rel===null?'—':rel.toFixed(2)+'x'}</b></div>
               </div>
-
-              <div class="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pt-2 border-t border-gray-800 text-[10px] text-gray-500">
-                <span>資料時間：${formatTime(s.market_time)}</span>
-                <span>${esc(s.source || '公開行情來源')} · ${esc(s.delayed_note || '可能延遲')}</span>
+              <div class="mt-3 pt-2 border-t border-gray-800 text-[10px] text-gray-500">
+                資料時間：${formatTime(s.market_time)} · ${esc(s.source || '')} · ${esc(s.delayed_note || '')}
               </div>
             </div>`;
         }).join('');
 
-        const statusBox = aiOk
-          ? `<div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
-               <i class="fa-solid fa-link mr-1"></i> 行情與 AI 後端已連線。公開行情可能延遲，非交易所授權逐筆即時報價。
-             </div>`
-          : `<div class="bg-amber-950/30 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200 mb-4">
-               <i class="fa-solid fa-triangle-exclamation mr-1"></i> 行情後端已連線，但 AI 分析尚未成功。
-               <div class="mt-1 text-amber-100 break-all">錯誤：${esc(data.ai_error || '未知 AI 錯誤')}</div>
-             </div>`;
-
-        const usageBox = data.usage ? `
-          <div class="bg-blue-950/20 border border-blue-500/20 rounded-xl p-3 text-xs text-blue-100 mb-4">
-            <div class="font-semibold mb-1"><i class="fa-solid fa-gauge-simple-high mr-1"></i>API 花費保護已啟用</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-blue-200">
-              <div>此裝置今日：${data.usage.client_count} / ${data.usage.client_limit} 次</div>
-              <div>全站今日：${data.usage.global_count} / ${data.usage.global_limit} 次</div>
-            </div>
-            <div class="mt-1 text-[10px] text-gray-400">每日自動重置；超過上限時行情仍可使用，但不再呼叫付費 AI。</div>
-          </div>` : '';
-
         dynamic.innerHTML = `
-          ${statusBox}
-          ${usageBox}
+          <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
+            <i class="fa-solid fa-code mr-1"></i> 已切換為純程式規則引擎。此分析不呼叫 OpenAI API，OpenAI API 成本為 0。
+          </div>
           ${snapshots.length ? `
             <div class="mb-4">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-gauge-high text-teal-400 mr-1.5"></i>行情儀表板</h3>
-                <span class="text-[10px] text-gray-500">前收／開高低／52週／相對均量／趨勢線</span>
+                <span class="text-[10px] text-gray-500">公開行情可能延遲</span>
               </div>
               <div class="grid grid-cols-1 gap-3">${cards}</div>
-            </div>` : `
-            <div class="bg-amber-950/25 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 mb-4">
-              尚未辨識到可查詢的台股或美股代號，因此沒有行情卡片。請輸入例如 00878、2330、NVDA、AAPL。
-            </div>`}
-          <div id="ai-answer-box" class="bg-gray-900 border border-gray-800 rounded-xl p-5 whitespace-pre-wrap leading-7 text-gray-200"></div>`;
-
-        document.getElementById('ai-answer-box').textContent = answer || (aiOk ? 'AI 未回傳文字內容。' : '行情已載入；請依上方 AI 錯誤訊息處理。');
-
-        if (Array.isArray(data.sources) && data.sources.length) {
-          const sourceBox = document.createElement('div');
-          sourceBox.className = 'bg-gray-900 border border-gray-800 rounded-xl p-4 mt-4 text-xs';
-          const title = document.createElement('div');
-          title.className = 'font-semibold text-teal-300 mb-2';
-          title.textContent = '新聞／研究資料來源';
-          sourceBox.appendChild(title);
-          data.sources.forEach((url, idx) => {
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.className = 'block text-blue-300 hover:text-blue-200 break-all mb-1';
-            a.textContent = `${idx + 1}. ${url}`;
-            sourceBox.appendChild(a);
-          });
-          dynamic.appendChild(sourceBox);
-        }
-
-        const modeNote = document.createElement('div');
-        modeNote.className = 'text-[11px] text-gray-500 mt-3';
-        modeNote.textContent = '版本：Market Dashboard v2 · 最新公開行情（可能延遲），非交易所授權即時報價。';
-        dynamic.appendChild(modeNote);
-        return;
+            </div>` : ''}
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 leading-7 text-gray-200">
+            ${renderAnalysis(currentTab, data.analysis)}
+          </div>
+          <div class="text-[11px] text-gray-500 mt-3">
+            引擎：${esc(data.engine || 'rule-engine-v1')} · AI 使用：否 · OpenAI API：不需要
+          </div>`;
 
       } catch (err) {
-        console.error(err);
         loading.classList.add('hidden');
         dynamic.classList.remove('hidden');
-        reportMeta.innerText = `分析時間：${nowStr} ‧ 後端連線錯誤`;
-        reportTitle.innerText = '【連線診斷】Supabase Edge Function';
+        reportTitle.innerText = '【程式分析後端錯誤】';
+        reportMeta.innerText = `分析時間：${nowStr}`;
         dynamic.innerHTML = `
           <div class="bg-rose-950/30 border border-rose-500/40 rounded-xl p-4 text-sm text-rose-200">
-            <div class="font-bold mb-2"><i class="fa-solid fa-circle-xmark mr-1"></i>目前沒有切回示範數值，因為這會掩蓋真正的錯誤。</div>
-            <div class="text-xs break-all">後端錯誤：${esc(err?.message || err)}</div>
-            <div class="text-xs text-gray-400 mt-2">請確認 Supabase financial-analysis 為 ACTIVE、OPENAI_API_KEY Secret 已儲存，以及重新整理本頁。</div>
+            <div class="font-bold mb-2">規則引擎連線失敗</div>
+            <div class="text-xs break-all">${esc(err?.message || err)}</div>
           </div>`;
-        return;
       }
     }
 
