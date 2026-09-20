@@ -212,7 +212,7 @@
               <div>
                 <label class="block text-xs font-medium text-gray-300 mb-1">交易週期風格</label>
                 <select id="m1-timeframe" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
-                  <option value="波段波段操作 (1-4 週)">波段操作 (1-4 週)</option>
+                  <option value="波段操作 (1-4 週)">波段操作 (1-4 週)</option>
                   <option value="短線當沖與隔日沖 (1-3 天)">短線隔日沖 (1-3 天)</option>
                   <option value="中長線趨勢佈局 (1-3 個月)">中長線趨勢 (1-3 個月)</option>
                   <option value="價值型長期存股 (6 個月以上)">價值型長線存股</option>
@@ -866,11 +866,18 @@ ${port}
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '交易點子')}</div>
               <div class="text-xs text-gray-300">${esc(a.summary || '')}</div>
               ${a.trade_style ? `
-                <div class="text-[11px] text-teal-300 bg-teal-950/20 border border-teal-500/20 rounded-lg p-2">
-                  目前交易風格：${esc(a.trade_style.label || '')} · 回測單筆最長持有約 ${esc(a.trade_style.hold_days ?? '')} 天
+                <div class="text-[11px] text-teal-300 bg-teal-950/20 border border-teal-500/20 rounded-lg p-3">
+                  <div class="font-semibold mb-1">目前交易風格：${esc(a.trade_style.label || '')}</div>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-gray-300">
+                    <div><span class="text-gray-500 block">最長持有</span>${esc(a.trade_style.hold_days ?? '')} 天</div>
+                    <div><span class="text-gray-500 block">支撐基準</span>${esc(a.trade_style.support_ma || '—')}</div>
+                    <div><span class="text-gray-500 block">趨勢基準</span>${esc(a.trade_style.trend_ma || '—')}</div>
+                    <div><span class="text-gray-500 block">停損寬度</span>${typeof a.trade_style.stop_atr==='number' ? a.trade_style.stop_atr.toFixed(2)+' ATR' : '—'}</div>
+                  </div>
+                  ${a.trade_style.focus ? '<div class="text-gray-400 mt-2">分析重點：'+esc(a.trade_style.focus)+'</div>' : ''}
                 </div>` : ''}
               <div class="text-xs text-gray-400 bg-gray-800/40 border border-gray-700 rounded-lg p-2">
-                說明：下面 5 個交易情境都會用近 5 年歷史日線逐一回測。回測只代表過去表現，不代表未來一定相同。
+                說明：下面 5 個交易情境會依目前選擇的交易風格改變進場條件、停損寬度、持有天數與回測規則。近 5 年回測只代表過去表現。
               </div>
               ${ideas}
             </div>`;
