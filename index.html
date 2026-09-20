@@ -994,7 +994,7 @@ ${port}
           if (a.error) {
             return `
               <div class="space-y-3">
-                <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
+                <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風險管理')}</div>
                 <div class="bg-rose-950/30 border border-rose-500/30 rounded-lg p-3 text-sm text-rose-200">${esc(a.error)}</div>
               </div>`;
           }
@@ -1010,9 +1010,32 @@ ${port}
               </div>
             </div>`).join('') : '';
 
+          const weaknesses = Array.isArray(a.weaknesses) ? a.weaknesses.map((x,i)=>`
+            <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <div class="font-semibold text-white">${i+1}. ${esc(x.title)}</div>
+                <span class="text-[10px] px-2 py-0.5 rounded border ${x.severity==='高'?'border-rose-500/30 text-rose-300 bg-rose-950/20':'border-amber-500/30 text-amber-300 bg-amber-950/20'}">${esc(x.severity || '中')}</span>
+              </div>
+              <div class="text-xs text-gray-300">${esc(x.detail)}</div>
+            </div>`).join('') : '';
+
+          const rebalance = Array.isArray(a.rebalance_plan) ? a.rebalance_plan.map((x,i)=>`
+            <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
+              <div class="font-semibold text-white mb-1">${i+1}. ${esc(x.action)} ${esc(x.asset)}</div>
+              ${typeof x.from_weight==='number' && typeof x.to_weight==='number' ? 
+                '<div class="text-xs text-teal-300 mb-1">'+formatPct(x.from_weight)+' → '+formatPct(x.to_weight)+'</div>' : ''}
+              <div class="text-xs text-gray-300">說明：${esc(x.reason)}</div>
+            </div>`).join('') : '';
+
+          const hedge = Array.isArray(a.hedge_plan) ? a.hedge_plan.map((x,i)=>`
+            <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
+              <div class="font-semibold text-white mb-1">${esc(x.step)}：${esc(x.action)}</div>
+              <div class="text-xs text-gray-300">${esc(x.detail)}</div>
+            </div>`).join('') : '';
+
           return `
-            <div class="space-y-3">
-              <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
+            <div class="space-y-4">
+              <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風險管理')}</div>
 
               ${a.input_mode==='amount' ? `
                 <div class="bg-teal-950/20 border border-teal-500/20 rounded-lg p-3">
@@ -1037,6 +1060,22 @@ ${port}
                 <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">資金最多的標的</div>${tops || '—'}</div>
                 <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">高相關性</div>${cors || '資料不足'}</div>
               </div>
+
+              <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-3">
+                <div class="text-xs font-semibold text-rose-300 mb-2">弱點、曝險過度與隱藏相關性</div>
+                <div class="space-y-2">${weaknesses || '<div class="text-xs text-gray-500">目前沒有偵測到明顯風險。</div>'}</div>
+              </div>
+
+              <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-3">
+                <div class="text-xs font-semibold text-teal-300 mb-2">再平衡方案</div>
+                <div class="space-y-2">${rebalance || '<div class="text-xs text-gray-500">目前沒有產生再平衡建議。</div>'}</div>
+              </div>
+
+              <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-3">
+                <div class="text-xs font-semibold text-amber-300 mb-2">市場下跌 20% 的避險策略</div>
+                <div class="space-y-2">${hedge || '<div class="text-xs text-gray-500">目前沒有產生避險建議。</div>'}</div>
+              </div>
+
               ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
             </div>`;
         }
