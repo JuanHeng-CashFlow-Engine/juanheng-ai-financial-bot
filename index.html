@@ -211,11 +211,11 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-gray-300 mb-1">交易週期風格</label>
-                <select id="m1-timeframe" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
+                <select id="m1-timeframe" onchange="updateM1StyleHint()" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
                   <option value="波段操作 (1-4 週)">波段操作 (1-4 週)</option>
-                  <option value="短線當沖與隔日沖 (1-3 天)">短線隔日沖 (1-3 天)</option>
-                  <option value="中長線趨勢佈局 (1-3 個月)">中長線趨勢 (1-3 個月)</option>
-                  <option value="價值型長期存股 (6 個月以上)">價值型長線存股</option>
+                  <option value="短線隔日沖 (1-3 天)">短線隔日沖 (1-3 天)</option>
+                  <option value="中長線趨勢 (1-3 個月)">中長線趨勢 (1-3 個月)</option>
+                  <option value="價值型長線存股 (6 個月以上)">價值型長線存股</option>
                 </select>
                 <div id="m1-style-hint" class="text-[10px] text-gray-500 mt-1.5">
                   波段：20/60 日均線、支撐壓力、量價與 ATR，回測最多持有 20 個交易日。
