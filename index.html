@@ -1021,6 +1021,28 @@ ${port}
                 <div class="text-[11px] text-gray-500 mt-1">說明：先整理新聞，再把新聞可能造成的短期與長期影響、價格波動與部位配置分開看。</div>
               </div>
 
+              <div class="bg-teal-950/20 border border-teal-500/30 rounded-xl p-4">
+                <div class="text-sm font-bold text-teal-300 mb-3">新聞影響總結</div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div class="bg-gray-900 rounded-lg p-2">
+                    <span class="text-gray-500 block">短期影響</span>
+                    <b>${esc(shortTerm.impact || '中性')}</b>
+                  </div>
+                  <div class="bg-gray-900 rounded-lg p-2">
+                    <span class="text-gray-500 block">長期影響</span>
+                    <b>${esc(longTerm.impact || '中性')}</b>
+                  </div>
+                  <div class="bg-gray-900 rounded-lg p-2">
+                    <span class="text-gray-500 block">價格區間</span>
+                    <b>${range ? formatNum(range.lower,2)+' ～ '+formatNum(range.upper,2) : '—'}</b>
+                  </div>
+                  <div class="bg-gray-900 rounded-lg p-2">
+                    <span class="text-gray-500 block">建議初始部位</span>
+                    <b>${esc(plan.initial || '—')}</b>
+                  </div>
+                </div>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
                   <div class="text-xs font-semibold text-white mb-2">短期影響</div>
@@ -1057,10 +1079,10 @@ ${port}
                 <div class="text-xs text-gray-300 mt-1"><span class="text-gray-500">說明：</span>${esc(plan.note || '')}</div>
               </div>
 
-              <div>
-                <div class="text-xs font-semibold text-white mb-2">最新新聞</div>
-                <div class="space-y-2">${rows || '<div class="text-gray-400 text-sm">目前沒有取得相關新聞。</div>'}</div>
-              </div>
+              <details class="bg-gray-800/30 border border-gray-700 rounded-xl p-3">
+                <summary class="cursor-pointer text-xs font-semibold text-white">最新新聞（點此展開 / 收合）</summary>
+                <div class="space-y-2 mt-3">${rows || '<div class="text-gray-400 text-sm">目前沒有取得相關新聞。</div>'}</div>
+              </details>
 
               <div class="text-[11px] text-gray-500">${esc(a.method || '')}</div>
             </div>`;
