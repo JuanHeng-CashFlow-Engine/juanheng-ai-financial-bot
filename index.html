@@ -766,10 +766,77 @@ ${port}
           dynamic.classList.remove('hidden');
           reportTitle.innerText = `【AI 即時研究】模組 ${currentTab}`;
           reportMeta.innerText = `分析時間：${nowStr} ‧ 已連線 AI＋最新公開市場資料`;
+          const snapshots = Array.isArray(data.market_snapshots) ? data.market_snapshots : [];
+          const formatNum = (n, digits = 2) => {
+            if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+            return n.toLocaleString('zh-TW', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+          };
+          const formatVol = (n) => {
+            if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+            if (n >= 100000000) return (n / 100000000).toFixed(2) + ' 億';
+            if (n >= 10000) return (n / 10000).toFixed(2) + ' 萬';
+            return n.toLocaleString('zh-TW');
+          };
+          const formatTime = (iso) => {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (Number.isNaN(d.getTime())) return iso;
+            return d.toLocaleString('zh-TW', { hour12: false });
+          };
+
+          const cards = snapshots.map((s) => {
+            const pct = typeof s.change_pct === 'number' ? s.change_pct : null;
+            const pctClass = pct === null ? 'text-gray-200' : (pct > 0 ? 'text-rose-400' : (pct < 0 ? 'text-emerald-400' : 'text-gray-200'));
+            const sign = pct !== null && pct > 0 ? '+' : '';
+            const marketLabel = s.market === 'TW' ? '台股' : (s.market === 'US' ? '美股' : (s.market || '市場'));
+            return `
+              <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <div class="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <div class="text-xs text-gray-400">${marketLabel} · ${s.symbol || ''}</div>
+                    <div class="text-sm font-bold text-white mt-0.5">${s.display_name || s.symbol || '標的'}</div>
+                  </div>
+                  <div class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-400 border border-gray-700">${s.currency || ''}</div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <div class="text-[10px] text-gray-500">現價</div>
+                    <div class="text-xl font-black text-white font-mono">${formatNum(s.price, 2)}</div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-gray-500">漲跌幅</div>
+                    <div class="text-xl font-black font-mono ${pctClass}">${pct === null ? '—' : sign + formatNum(pct, 2) + '%'}</div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-gray-500">成交量</div>
+                    <div class="text-sm font-bold text-gray-200 font-mono">${formatVol(s.volume)}</div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-gray-500">資料時間</div>
+                    <div class="text-xs font-medium text-gray-300">${formatTime(s.market_time)}</div>
+                  </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-gray-800 text-[10px] text-gray-500">
+                  ${s.source || '公開行情來源'} · ${s.delayed_note || '可能延遲'}
+                </div>
+              </div>`;
+          }).join('');
+
           dynamic.innerHTML = `
             <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
               <i class="fa-solid fa-link mr-1"></i> 已由安全後端呼叫 AI，並搜尋最新公開行情／新聞。公開來源可能延遲，不能視為交易所即時報價。
             </div>
+            ${snapshots.length ? `
+              <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-gauge-high text-teal-400 mr-1.5"></i>行情儀表板</h3>
+                  <span class="text-[10px] text-gray-500">台股 / 美股統一卡片</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">${cards}</div>
+              </div>` : `
+              <div class="bg-amber-950/25 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 mb-4">
+                尚未辨識到可查詢的台股或美股代號，因此沒有顯示行情卡片。
+              </div>`}
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 whitespace-pre-wrap leading-7 text-gray-200"></div>`;
           dynamic.lastElementChild.textContent = answer;
 
