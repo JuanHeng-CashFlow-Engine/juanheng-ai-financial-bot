@@ -1003,7 +1003,12 @@ ${port}
           const cors = Array.isArray(a.strongest_correlations) ? a.strongest_correlations.map(x => `<div>${esc(x.a)} ↔ ${esc(x.b)}：${formatNum(x.corr,2)}</div>`).join('') : '';
           const holdings = Array.isArray(a.holdings) ? a.holdings.map(x => `
             <div class="flex items-center justify-between gap-3 py-1.5 border-b border-gray-800 last:border-0">
-              <span class="text-gray-300">${esc(x.name)}</span>
+              <span class="text-gray-300">
+                ${(() => {
+                  const m = String(x.name || '').match(/^(\d{4,6}[A-Z]?)\s+(.+)$/i);
+                  return m ? '<span class="text-gray-500 mr-1">'+esc(m[1])+'</span><span class="text-white">'+esc(m[2])+'</span>' : esc(x.name);
+                })()}
+              </span>
               <div class="text-right">
                 ${typeof x.amount==='number' ? '<div class="text-white font-medium">'+x.amount.toLocaleString('zh-TW')+'</div>' : ''}
                 <div class="text-teal-300 text-[11px]">${formatPct(x.weight)}</div>
