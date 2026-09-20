@@ -890,7 +890,7 @@ ${port}
         loading.classList.add('hidden');
         dynamic.classList.remove('hidden');
         reportTitle.innerText = `【程式量化分析】模組 ${currentTab}`;
-        reportMeta.innerText = `分析時間：${nowStr} ‧ Rule Engine v1（無 OpenAI API）`;
+        reportMeta.innerText = `分析時間：${nowStr}`;
 
         const cards = snapshots.map((s) => {
           const pct = typeof s.change_pct === 'number' ? s.change_pct : null;
@@ -931,9 +931,6 @@ ${port}
         }).join('');
 
         dynamic.innerHTML = `
-          <div class="bg-emerald-950/25 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 mb-4">
-            <i class="fa-solid fa-code mr-1"></i> 已切換為純程式規則引擎。此分析不呼叫 OpenAI API，OpenAI API 成本為 0。
-          </div>
           ${snapshots.length ? `
             <div class="mb-4">
               <div class="flex items-center justify-between mb-2">
@@ -945,9 +942,7 @@ ${port}
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 leading-7 text-gray-200">
             ${renderAnalysis(currentTab, data.analysis)}
           </div>
-          <div class="text-[11px] text-gray-500 mt-3">
-            引擎：${esc(data.engine || 'rule-engine-v1')} · AI 使用：否 · OpenAI API：不需要
-          </div>`;
+`;
 
       } catch (err) {
         loading.classList.add('hidden');
