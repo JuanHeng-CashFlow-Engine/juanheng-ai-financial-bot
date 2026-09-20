@@ -876,6 +876,7 @@ ${port}
           const d = a.daily || {};
           const w = a.weekly || {};
           const mode = a.indicator_mode || 'rsi_macd';
+          const maMode = a.ma_mode || 'standard';
 
           const supports = Array.isArray(a.support_levels) ? a.support_levels.map(x => `
             <div class="flex justify-between gap-3"><span class="text-gray-500">${esc(x.label)}</span><b class="text-emerald-300">${formatNum(x.value,2)}</b></div>`).join('') : '';
@@ -914,13 +915,32 @@ ${port}
           `;
 
           const modeLabel = mode === 'kd' ? 'KD 隨機指標' : mode === 'obv' ? '量價分佈與 OBV' : 'RSI + MACD';
+          const maModeLabel = maMode === 'us_ema_sma' ? '美股慣用：10/20 EMA + 50/200 SMA' : maMode === 'bollinger' ? '布林通道 Bollinger Bands' : '標準均線：5/20/60/240';
+          const dailyMA = maMode === 'us_ema_sma' ? `
+            <div><span class="text-gray-500 block">EMA10</span><b>${formatNum(d.ema10,2)}</b></div>
+            <div><span class="text-gray-500 block">EMA20</span><b>${formatNum(d.ema20,2)}</b></div>
+            <div><span class="text-gray-500 block">SMA50</span><b>${formatNum(d.sma50,2)}</b></div>
+            <div><span class="text-gray-500 block">SMA200</span><b>${formatNum(d.sma200,2)}</b></div>
+          ` : maMode === 'bollinger' ? `
+            <div><span class="text-gray-500 block">布林上軌</span><b>${d.bollinger ? formatNum(d.bollinger.upper,2) : '—'}</b></div>
+            <div><span class="text-gray-500 block">布林中線</span><b>${d.bollinger ? formatNum(d.bollinger.mid,2) : '—'}</b></div>
+            <div><span class="text-gray-500 block">布林下軌</span><b>${d.bollinger ? formatNum(d.bollinger.lower,2) : '—'}</b></div>
+            <div class="col-span-2 text-[10px] text-gray-500">說明：靠近上軌代表偏強但可能過熱；靠近下軌代表偏弱或可能跌深。</div>
+          ` : `
+            <div><span class="text-gray-500 block">MA5</span><b>${formatNum(d.ma5,2)}</b></div>
+            <div><span class="text-gray-500 block">MA20</span><b>${formatNum(d.ma20,2)}</b></div>
+            <div><span class="text-gray-500 block">MA60</span><b>${formatNum(d.ma60,2)}</b></div>
+            <div><span class="text-gray-500 block">MA120</span><b>${formatNum(d.ma120,2)}</b></div>
+            <div><span class="text-gray-500 block">MA240</span><b>${formatNum(d.ma240,2)}</b></div>
+          `;
 
           return `
             <div class="space-y-4">
               <div>
                 <div class="text-sm font-bold text-teal-300">${esc(a.title || '日線＋週線技術分析')}</div>
                 <div class="text-xs text-gray-300 mt-1">${esc(a.summary || '')}</div>
-                <div class="text-[11px] text-teal-300 mt-1">目前使用指標：${modeLabel}</div>
+                <div class="text-[11px] text-teal-300 mt-1">目前均線配置：${maModeLabel}</div>
+                <div class="text-[11px] text-teal-300 mt-0.5">目前使用指標：${modeLabel}</div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -929,11 +949,7 @@ ${port}
                   <div class="grid grid-cols-2 gap-2 text-xs">
                     <div><span class="text-gray-500 block">趨勢</span><b>${esc(d.trend || '—')}</b></div>
                     <div><span class="text-gray-500 block">趨勢線</span><b>${esc(d.trend_line || '—')}</b></div>
-                    <div><span class="text-gray-500 block">MA5</span><b>${formatNum(d.ma5,2)}</b></div>
-                    <div><span class="text-gray-500 block">MA20</span><b>${formatNum(d.ma20,2)}</b></div>
-                    <div><span class="text-gray-500 block">MA60</span><b>${formatNum(d.ma60,2)}</b></div>
-                    <div><span class="text-gray-500 block">MA120</span><b>${formatNum(d.ma120,2)}</b></div>
-                    <div><span class="text-gray-500 block">MA240</span><b>${formatNum(d.ma240,2)}</b></div>
+                    ${dailyMA}
                     ${dailyIndicator}
                   </div>
                 </div>
