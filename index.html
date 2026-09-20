@@ -178,7 +178,7 @@
             </div>
             <h3 class="text-base font-bold text-white mt-1">交易點子生成器 (Trade Idea Generator)</h3>
             <p class="text-xs text-gray-400 mt-1 italic">
-              「掃描今天的市場，針對 [填入股票/指數/產業] 產生 5 個高勝率交易機會。包含進場價格、出場目標、停損點與風險報酬比，並根據技術面與基本面因素，說明每個交易機會成立的原因。」
+              「掃描今天的市場，針對 [填入股票/指數/產業] 產生 5 個高勝率交易機會。包含進場價格、出場目標、停損點與風險報酬比（賠 1 元，想賺幾元），並根據技術面與基本面因素，說明每個交易機會成立的原因。」
             </p>
           </div>
 
@@ -205,7 +205,7 @@
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">最低風險報酬比 (R:R)</label>
+                <label class="block text-xs font-medium text-gray-300 mb-1">最低風險報酬比（賠 1 元，想賺幾元） (R:R)</label>
                 <select id="m1-rr" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500">
                   <option value="1 : 2.5 以上">1 : 2.5 (推薦標準)</option>
                   <option value="1 : 2.0 以上">1 : 2.0 (標準波段)</option>
@@ -321,7 +321,7 @@
             </div>
             <h3 class="text-base font-bold text-white mt-1">策略回測分析師 (Strategy Backtesting Analyst)</h3>
             <p class="text-xs text-gray-400 mt-1 italic">
-              「針對 [填入交易策略，例如均線交叉、RSI 背離]，在 [填入股票／指數] 過去 [填入期間] 的資料上執行回測。呈現勝率、獲利因子、最大回撤，以及可提高策略優勢的改進方向。」
+              「針對 [填入交易策略，例如均線交叉、RSI 背離]，在 [填入股票／指數] 過去 [填入期間] 的資料上執行回測。呈現勝率、獲利因子、最大回撤，以及怎麼讓這個方法變得更好。」
             </p>
           </div>
 
@@ -614,9 +614,9 @@ BNDW 全球債券: 20%
 ` +
                `「掃描今天的市場，針對 [${target}] 產生 5 個高勝率交易機會。
 ` +
-               `設定交易週期為 [${tf}]，要求最低風險報酬比為 [${rr}]。
+               `設定交易週期為 [${tf}]，要求最低風險報酬比（賠 1 元，想賺幾元）為 [${rr}]。
 ` +
-               `包含進場價格、出場目標、停損點與風險報酬比，並根據技術面與基本面因素，說明每個交易機會成立的原因。」` +
+               `包含進場價格、出場目標、停損點與風險報酬比（賠 1 元，想賺幾元），並根據技術面與基本面因素，說明每個交易機會成立的原因。」` +
                (notes ? `
 補充市場觀察：${notes}` : "");
       } else if (currentTab === 2) {
@@ -655,7 +655,7 @@ BNDW 全球債券: 20%
 ` +
                `交易磨擦成本假設：${friction}。
 ` +
-               `呈現勝率、獲利因子、最大回撤，以及可提高策略優勢的改進方向。」`;
+               `呈現勝率、獲利因子、最大回撤，以及怎麼讓這個方法變得更好。」`;
       } else if (currentTab === 5) {
         const port = document.getElementById('m5-portfolio').value || "[填入股票代號與配置比例]";
         const profile = document.getElementById('m5-risk-profile').value;
@@ -748,6 +748,15 @@ ${port}
         return n.toLocaleString('zh-TW', { maximumFractionDigits: digits, minimumFractionDigits: digits });
       };
       const formatPct = (n) => typeof n === 'number' ? (n * 100).toFixed(2) + '%' : '—';
+      const plainExplain = (term, value) => {
+        if (term === 'win_rate') return '白話：做 10 次，大約有 ' + (typeof value==='number' ? Math.round(value*10) : '—') + ' 次可能是賺錢的。';
+        if (term === 'profit_factor') return '白話：這個數字越大，代表賺到的錢相對比賠掉的錢多。';
+        if (term === 'mdd') return '白話：最差的時候，資產最多曾經縮水這麼多。';
+        if (term === 'cagr') return '白話：把很多年的結果平均後，每年大約成長這麼多。';
+        if (term === 'hhi') return '白話：數字越高，代表錢越集中在少數幾個標的。';
+        if (term === 'stress') return '白話：假設市場大跌時，這個投資組合可能會受到多大影響。';
+        return '';
+      };
       const formatVol = (n) => {
         if (typeof n !== 'number' || Number.isNaN(n)) return '—';
         if (n >= 100000000) return (n / 100000000).toFixed(2) + ' 億';
@@ -792,11 +801,11 @@ ${port}
                 <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">進場價格</span><b class="text-white">${formatNum(x.entry_price,2)}</b></div>
                 <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">出場目標</span><b class="text-emerald-300">${formatNum(x.target_price,2)}</b></div>
                 <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">停損點</span><b class="text-rose-300">${formatNum(x.stop_loss,2)}</b></div>
-                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">風險報酬比</span><b class="text-teal-300">1 : ${formatNum(x.risk_reward,2)}</b></div>
+                <div class="bg-gray-900 rounded-lg p-2"><span class="block text-[10px] text-gray-500">風險報酬比（賠 1 元，想賺幾元）</span><b class="text-teal-300">1 : ${formatNum(x.risk_reward,2)}</b></div>
               </div>
-              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">成立條件：</span>${esc(x.trigger)}</div>
-              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">技術面理由：</span>${esc(x.technical_reason)}</div>
-              <div class="text-xs text-gray-300"><span class="text-gray-500">基本面理由：</span>${esc(x.fundamental_reason)}</div>
+              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">什麼情況才算成立：</span>${esc(x.trigger)}</div>
+              <div class="text-xs text-gray-300 mb-1"><span class="text-gray-500">看圖表的理由：</span>${esc(x.technical_reason)}</div>
+              <div class="text-xs text-gray-300"><span class="text-gray-500">看公司／ETF資料的理由：</span>${esc(x.fundamental_reason)}</div>
               ${x.note ? '<div class="text-[10px] text-gray-500 mt-2">'+esc(x.note)+'</div>' : ''}
             </div>`).join('') : '';
           return `
@@ -826,7 +835,7 @@ ${port}
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
-                  <div class="font-semibold text-white mb-2">日線分析</div>
+                  <div class="font-semibold text-white mb-2">日線分析（看最近幾天的方向）</div>
                   <div class="grid grid-cols-2 gap-2 text-xs">
                     <div><span class="text-gray-500 block">趨勢</span><b>${esc(d.trend || '—')}</b></div>
                     <div><span class="text-gray-500 block">趨勢線</span><b>${esc(d.trend_line || '—')}</b></div>
@@ -835,13 +844,13 @@ ${port}
                     <div><span class="text-gray-500 block">MA60</span><b>${formatNum(d.ma60,2)}</b></div>
                     <div><span class="text-gray-500 block">MA120</span><b>${formatNum(d.ma120,2)}</b></div>
                     <div><span class="text-gray-500 block">MA240</span><b>${formatNum(d.ma240,2)}</b></div>
-                    <div><span class="text-gray-500 block">RSI14</span><b>${formatNum(d.rsi14,1)}</b></div>
-                    <div><span class="text-gray-500 block">MACD</span><b>${d.macd ? formatNum(d.macd.hist,3) : '—'}</b></div>
+                    <div><span class="text-gray-500 block">RSI14</span><b>${formatNum(d.rsi14,1)}</b><div class="text-[10px] text-gray-500">像溫度計：太高可能太熱，太低可能太冷</div></div>
+                    <div><span class="text-gray-500 block">MACD</span><b>${d.macd ? formatNum(d.macd.hist,3) : '—'}</b><div class="text-[10px] text-gray-500">看股價現在是越來越有力，還是越來越沒力</div></div>
                   </div>
                 </div>
 
                 <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
-                  <div class="font-semibold text-white mb-2">週線分析</div>
+                  <div class="font-semibold text-white mb-2">週線分析（看比較長一點的方向）</div>
                   <div class="grid grid-cols-2 gap-2 text-xs">
                     <div><span class="text-gray-500 block">趨勢</span><b>${esc(w.trend || '—')}</b></div>
                     <div><span class="text-gray-500 block">趨勢線</span><b>${esc(w.trend_line || '—')}</b></div>
@@ -857,26 +866,26 @@ ${port}
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div class="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-3 text-xs">
-                  <div class="font-semibold text-emerald-300 mb-2">支撐區</div>
+                  <div class="font-semibold text-emerald-300 mb-2">支撐區（跌到這附近，可能有人接）</div>
                   <div class="space-y-1">${supports || '資料不足'}</div>
                 </div>
                 <div class="bg-rose-950/20 border border-rose-500/20 rounded-xl p-3 text-xs">
-                  <div class="font-semibold text-rose-300 mb-2">壓力區</div>
+                  <div class="font-semibold text-rose-300 mb-2">壓力區（漲到這附近，可能比較難再漲）</div>
                   <div class="space-y-1">${resistances || '資料不足'}</div>
                 </div>
               </div>
 
               <div class="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
                 <div class="flex items-center justify-between gap-2 mb-2">
-                  <div class="font-semibold text-white">買進／持有／賣出訊號</div>
+                  <div class="font-semibold text-white">現在比較像：買進／持有／賣出哪一種情況</div>
                   <div class="text-xs px-2 py-1 rounded bg-teal-950/40 text-teal-300 border border-teal-500/30">${esc(a.signal || '—')}</div>
                 </div>
                 <div class="text-xs text-gray-300">
-                  <div class="text-gray-500 mb-1">訊號理由</div>
+                  <div class="text-gray-500 mb-1">為什麼這樣判斷</div>
                   <ul class="list-disc pl-5 space-y-1">${reasons || '<li>資料不足</li>'}</ul>
                 </div>
                 <div class="text-xs text-gray-300 mt-3">
-                  <div class="text-gray-500 mb-1">操作條件</div>
+                  <div class="text-gray-500 mb-1">接下來要看什麼</div>
                   <ul class="list-disc pl-5 space-y-1">${actions || '<li>資料不足</li>'}</ul>
                 </div>
               </div>
@@ -890,13 +899,13 @@ ${port}
             <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
               <div class="text-xs text-gray-500 mb-1">${esc(x.pubDate || '')} · ${esc(x.source || '')}</div>
               <div class="font-medium text-white">${esc(x.title)}</div>
-              <div class="text-xs mt-1 ${x.impact==='偏正面'?'text-rose-300':x.impact==='偏負面'?'text-emerald-300':'text-gray-400'}">規則判讀：${esc(x.impact)}</div>
+              <div class="text-xs mt-1 ${x.impact==='偏正面'?'text-rose-300':x.impact==='偏負面'?'text-emerald-300':'text-gray-400'}">白話判讀：${esc(x.impact)}</div>
               ${x.link ? '<a class="text-xs text-blue-300 break-all mt-1 block" target="_blank" rel="noopener noreferrer" href="'+esc(x.link)+'">查看原文</a>' : ''}
             </div>`).join('') : '';
           return `
             <div class="space-y-3">
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '新聞規則分析')}</div>
-              <div class="text-[11px] text-gray-500">${esc(a.method || '')}</div>
+              <div class="text-[11px] text-gray-500">白話：把新聞標題裡比較好的字、比較壞的字分開看，先做第一層整理。重大新聞還是要點進原文看。</div>
               ${rows || '<div class="text-gray-400 text-sm">目前沒有取得相關新聞。</div>'}
             </div>`;
         }
@@ -919,14 +928,14 @@ ${port}
 
               <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">交易次數</span><b>${esc(a.trades ?? '—')}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">勝率</span><b>${formatPct(a.win_rate)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">獲利因子</span><b>${formatNum(a.profit_factor,2)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">最大回撤</span><b>${formatPct(a.max_drawdown)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">CAGR</span><b>${formatPct(a.cagr)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">勝率</span><b>${formatPct(a.win_rate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('win_rate',a.win_rate)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">獲利因子</span><b>${formatNum(a.profit_factor,2)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('profit_factor',a.profit_factor)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">最大回撤</span><b>${formatPct(a.max_drawdown)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('mdd',a.max_drawdown)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">平均每年成長（CAGR）</span><b>${formatPct(a.cagr)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('cagr',a.cagr)}</div></div>
               </div>
 
               <div class="bg-gray-800/40 border border-gray-700 rounded-xl p-3">
-                <div class="text-xs font-semibold text-teal-300 mb-2">可提高策略優勢的改進方向</div>
+                <div class="text-xs font-semibold text-teal-300 mb-2">怎麼讓這個方法變得更好</div>
                 <div class="space-y-2">
                   ${improvements || '<div class="text-xs text-gray-500">目前沒有產生改進建議。</div>'}
                 </div>
@@ -944,12 +953,12 @@ ${port}
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '投資組合風控')}</div>
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
                 <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">權重合計</span><b>${formatPct(a.total_weight)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">集中度 HHI</span><b>${formatNum(a.concentration_hhi,3)}</b></div>
-                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">市場 -20% 情境</span><b>${formatPct(a.stress_market_minus20_estimate)}</b></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">集中度 HHI</span><b>${formatNum(a.concentration_hhi,3)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('hhi',a.concentration_hhi)}</div></div>
+                <div class="bg-gray-800/60 rounded-lg p-2"><span class="text-gray-500 block">假設市場跌 20%</span><b>${formatPct(a.stress_market_minus20_estimate)}</b><div class="text-[10px] text-gray-500 mt-1">${plainExplain('stress',a.stress_market_minus20_estimate)}</div></div>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">最大持倉</div>${tops || '—'}</div>
-                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">較高相關性</div>${cors || '資料不足'}</div>
+                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">錢放最多的標的</div>${tops || '—'}</div>
+                <div class="bg-gray-800/60 rounded-lg p-3"><div class="font-semibold text-white mb-1">常常一起漲跌的標的</div>${cors || '資料不足'}</div>
               </div>
               ${Array.isArray(a.notes) ? '<div class="text-[11px] text-gray-500">'+a.notes.map(esc).join('<br>')+'</div>' : ''}
             </div>`;
@@ -1029,6 +1038,9 @@ ${port}
               <div class="grid grid-cols-1 gap-3">${cards}</div>
             </div>` : ''}
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 leading-7 text-gray-200">
+            <div class="mb-3 text-xs text-teal-300 bg-teal-950/20 border border-teal-500/20 rounded-lg p-2">
+              白話說明：保留專業數字，但盡量用國小生也看得懂的方式解釋。
+            </div>
             ${renderAnalysis(currentTab, data.analysis)}
           </div>
 `;
@@ -1063,7 +1075,7 @@ ${port}
             <span class="text-xs font-semibold text-teal-400 uppercase tracking-wider"><i class="fa-solid fa-radar mr-1"></i> 全市場掃描摘要</span>
             <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">週期: ${tf}</span>
           </div>
-          <p class="text-xs text-gray-300 mt-2">針對 <strong>${target}</strong> 進行量化籌碼與技術型態濾網掃描，嚴格篩選出 5 個具備「風險報酬比 ≥ ${rr}」且技術面與基本面共振的波段與突破交易機會。</p>
+          <p class="text-xs text-gray-300 mt-2">針對 <strong>${target}</strong> 進行量化籌碼與技術型態濾網掃描，嚴格篩選出 5 個具備「風險報酬比（賠 1 元，想賺幾元） ≥ ${rr}」且技術面與基本面共振的波段與突破交易機會。</p>
         </div>
 
         <div class="space-y-4">
