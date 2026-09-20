@@ -123,6 +123,20 @@
         <label class="block text-xs font-semibold text-gray-400 px-2 mb-2 uppercase tracking-wider">
           <i class="fa-solid fa-layer-group text-teal-400 mr-1.5"></i> 選擇理財分析任務（5 大專業模組）
         </label>
+
+        <div class="mb-4 bg-gray-950/50 border border-teal-500/25 rounded-xl p-3">
+          <label class="block text-xs font-semibold text-teal-300 mb-1.5">標的（股票 / 指數 / ETF）</label>
+          <input type="text" id="global-target" oninput="syncGlobalTarget(this.value)"
+            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-teal-500 transition"
+            placeholder="例如：00981A、00878、2330、NVDA、0050">
+          <div class="text-[11px] text-gray-500 mt-1.5">先輸入一次標的，再切換 1～4 模組，不用重複輸入。</div>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <button type="button" onclick="setGlobalTarget('00981A')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">00981A 主動統一台股增長</button>
+            <button type="button" onclick="setGlobalTarget('00878')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">00878 國泰永續高股息</button>
+            <button type="button" onclick="setGlobalTarget('2330')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">2330 台積電</button>
+            <button type="button" onclick="setGlobalTarget('NVDA')" class="text-[11px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700">NVDA 輝達</button>
+          </div>
+        </div>
         <div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
           <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn active w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between bg-teal-500/15 text-teal-300 border border-teal-500/40 shadow-sm">
             <div class="flex items-center gap-2.5">
@@ -183,7 +197,7 @@
           </div>
 
           <div class="space-y-3 flex-1">
-            <div>
+            <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">目標標的 (股票 / 指數 / 產業)</label>
               <input type="text" id="m1-target" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 (2330) 或 美股半導體 / AI伺服器產業">
               <div class="flex flex-wrap gap-1.5 mt-2">
@@ -235,7 +249,7 @@
           </div>
 
           <div class="space-y-3 flex-1">
-            <div>
+            <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">分析標的代號／名稱</label>
               <input type="text" id="m2-symbol" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：2330 台積電 或 AAPL 蘋果">
               <div class="flex flex-wrap gap-1.5 mt-2">
@@ -286,7 +300,7 @@
           </div>
 
           <div class="space-y-3 flex-1">
-            <div>
+            <div class="hidden">
               <label class="block text-xs font-medium text-gray-300 mb-1">關注公司／產業</label>
               <input type="text" id="m3-company" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition" placeholder="例如：台積電 / 先進封裝 CoWoS 或 美國聯準會降息循環">
               <div class="flex flex-wrap gap-1.5 mt-2">
@@ -338,7 +352,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-              <div>
+              <div class="hidden">
                 <label class="block text-xs font-medium text-gray-300 mb-1">回測標的 (股票 / 指數)</label>
                 <input type="text" id="m4-asset" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-500" placeholder="例如：0050 / 台股加權 / NVDA">
               </div>
@@ -544,6 +558,8 @@ BNDW 全球債券: 20%
 
     function switchTab(tabIndex) {
       currentTab = tabIndex;
+      const globalTarget = document.getElementById('global-target')?.value || '';
+      if (globalTarget) syncGlobalTarget(globalTarget);
       // 更新按鈕樣式
       for (let i = 1; i <= 5; i++) {
         const btn = document.getElementById(`tab-btn-${i}`);
@@ -570,15 +586,31 @@ BNDW 全球債券: 20%
       document.getElementById('badge-mode').innerText = modeNames[tabIndex - 1];
     }
 
+    // 共用標的：輸入一次後，模組 1～4 自動共用
+    function syncGlobalTarget(val) {
+      ['m1-target','m2-symbol','m3-company','m4-asset'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+      });
+    }
+
+    function setGlobalTarget(val) {
+      const el = document.getElementById('global-target');
+      if (el) el.value = val;
+      syncGlobalTarget(val);
+    }
+
     // 快捷輸入按鈕
-    function setM1Target(val) { document.getElementById('m1-target').value = val; }
-    function setM2Symbol(val) { document.getElementById('m2-symbol').value = val; }
-    function setM3Company(val) { document.getElementById('m3-company').value = val; }
+    function setM1Target(val) { setGlobalTarget(val); }
+    function setM2Symbol(val) { setGlobalTarget(val); }
+    function setM3Company(val) { setGlobalTarget(val); }
     function setM4Strategy(val) { document.getElementById('m4-strategy').value = val; }
     function setM5Portfolio(val) { document.getElementById('m5-portfolio').value = val; }
 
     // 重置所有表單
     function resetAllForms() {
+      const globalTarget = document.getElementById('global-target');
+      if (globalTarget) globalTarget.value = '';
       document.getElementById('m1-target').value = '';
       document.getElementById('m1-notes').value = '';
       document.getElementById('m2-symbol').value = '';
@@ -606,7 +638,7 @@ BNDW 全球債券: 20%
     function buildPromptText() {
       let text = "";
       if (currentTab === 1) {
-        const target = document.getElementById('m1-target').value || "[填入股票/指數/產業]";
+        const target = document.getElementById('global-target')?.value || document.getElementById('m1-target').value || "[填入股票/指數/產業]";
         const tf = document.getElementById('m1-timeframe').value;
         const rr = document.getElementById('m1-rr').value;
         const notes = document.getElementById('m1-notes').value;
@@ -620,7 +652,7 @@ BNDW 全球債券: 20%
                (notes ? `
 補充市場觀察：${notes}` : "");
       } else if (currentTab === 2) {
-        const sym = document.getElementById('m2-symbol').value || "[填入股票/代號]";
+        const sym = document.getElementById('global-target')?.value || document.getElementById('m2-symbol').value || "[填入股票/代號]";
         const ma = document.getElementById('m2-ma').value;
         const osc = document.getElementById('m2-oscillator').value;
         const p = document.getElementById('m2-price').value;
@@ -634,7 +666,7 @@ BNDW 全球債券: 20%
                (p ? `
 當前觀察價格/持倉：${p}` : "");
       } else if (currentTab === 3) {
-        const comp = document.getElementById('m3-company').value || "[填入公司／產業]";
+        const comp = document.getElementById('global-target')?.value || document.getElementById('m3-company').value || "[填入公司／產業]";
         const news = document.getElementById('m3-news').value || "[填入最新重大事件]";
         const risk = document.getElementById('m3-risk').value;
         text = `【理財機器人提示詞 3：新聞轉交易策略】
@@ -646,7 +678,7 @@ BNDW 全球債券: 20%
                `說明可能的短期與長期影響、預期價格波動區間，以及建議的部位配置與避險措施。」`;
       } else if (currentTab === 4) {
         const strat = document.getElementById('m4-strategy').value || "[填入交易策略，例如均線交叉、RSI 背離]";
-        const asset = document.getElementById('m4-asset').value || "[填入股票／指數]";
+        const asset = document.getElementById('global-target')?.value || document.getElementById('m4-asset').value || "[填入股票／指數]";
         const period = document.getElementById('m4-period').value;
         const friction = document.getElementById('m4-friction').value;
         text = `【理財機器人提示詞 4：策略回測分析師】
@@ -749,12 +781,12 @@ ${port}
       };
       const formatPct = (n) => typeof n === 'number' ? (n * 100).toFixed(2) + '%' : '—';
       const plainExplain = (term, value) => {
-        if (term === 'win_rate') return '白話：做 10 次，大約有 ' + (typeof value==='number' ? Math.round(value*10) : '—') + ' 次可能是賺錢的。';
-        if (term === 'profit_factor') return '白話：這個數字越大，代表賺到的錢相對比賠掉的錢多。';
-        if (term === 'mdd') return '白話：最差的時候，資產最多曾經縮水這麼多。';
-        if (term === 'cagr') return '白話：把很多年的結果平均後，每年大約成長這麼多。';
-        if (term === 'hhi') return '白話：數字越高，代表錢越集中在少數幾個標的。';
-        if (term === 'stress') return '白話：假設市場大跌時，這個投資組合可能會受到多大影響。';
+        if (term === 'win_rate') return '說明：做 10 次，大約有 ' + (typeof value==='number' ? Math.round(value*10) : '—') + ' 次可能是賺錢的。';
+        if (term === 'profit_factor') return '說明：這個數字越大，代表賺到的錢相對比賠掉的錢多。';
+        if (term === 'mdd') return '說明：最差的時候，資產最多曾經縮水這麼多。';
+        if (term === 'cagr') return '說明：把很多年的結果平均後，每年大約成長這麼多。';
+        if (term === 'hhi') return '說明：數字越高，代表錢越集中在少數幾個標的。';
+        if (term === 'stress') return '說明：假設市場大跌時，這個投資組合可能會受到多大影響。';
         return '';
       };
       const formatVol = (n) => {
@@ -899,13 +931,13 @@ ${port}
             <div class="bg-gray-800/60 border border-gray-700 rounded-lg p-3">
               <div class="text-xs text-gray-500 mb-1">${esc(x.pubDate || '')} · ${esc(x.source || '')}</div>
               <div class="font-medium text-white">${esc(x.title)}</div>
-              <div class="text-xs mt-1 ${x.impact==='偏正面'?'text-rose-300':x.impact==='偏負面'?'text-emerald-300':'text-gray-400'}">白話判讀：${esc(x.impact)}</div>
+              <div class="text-xs mt-1 ${x.impact==='偏正面'?'text-rose-300':x.impact==='偏負面'?'text-emerald-300':'text-gray-400'}">說明：${esc(x.impact)}</div>
               ${x.link ? '<a class="text-xs text-blue-300 break-all mt-1 block" target="_blank" rel="noopener noreferrer" href="'+esc(x.link)+'">查看原文</a>' : ''}
             </div>`).join('') : '';
           return `
             <div class="space-y-3">
               <div class="text-sm font-bold text-teal-300">${esc(a.title || '新聞規則分析')}</div>
-              <div class="text-[11px] text-gray-500">白話：把新聞標題裡比較好的字、比較壞的字分開看，先做第一層整理。重大新聞還是要點進原文看。</div>
+              <div class="text-[11px] text-gray-500">說明：把新聞標題裡比較好的字、比較壞的字分開看，先做第一層整理。重大新聞還是要點進原文看。</div>
               ${rows || '<div class="text-gray-400 text-sm">目前沒有取得相關新聞。</div>'}
             </div>`;
         }
@@ -1038,10 +1070,7 @@ ${port}
               <div class="grid grid-cols-1 gap-3">${cards}</div>
             </div>` : ''}
           <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 leading-7 text-gray-200">
-            <div class="mb-3 text-xs text-teal-300 bg-teal-950/20 border border-teal-500/20 rounded-lg p-2">
-              白話說明：保留專業數字，但盡量用國小生也看得懂的方式解釋。
-            </div>
-            ${renderAnalysis(currentTab, data.analysis)}
+${renderAnalysis(currentTab, data.analysis)}
           </div>
 `;
 
