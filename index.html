@@ -717,7 +717,7 @@ BNDW 全球債券: 20%
     // 請填入部署後的 Supabase Edge Function URL。不要把 OpenAI API Key 放在這個 HTML。
     // 例如：https://YOUR_PROJECT_REF.supabase.co/functions/v1/financial-analysis
 
-    const AI_API_ENDPOINT = "https://dhhazovgtpcxunmdnlqd.supabase.co/functions/v1/financial-analysis";
+    const AI_API_ENDPOINT = "https://dhhazovgtpcxunmdnlqd.supabase.co/functions/v1/financial-analysis-auth";
 
     // ===== Phase 1：與退休金流續航儀共用會員登入與資產 =====
     const SUPABASE_URL = "https://dhhazovgtpcxunmdnlqd.supabase.co";
@@ -1588,9 +1588,17 @@ ${port}
       };
 
       try {
+        if (!juanHengSession?.access_token) {
+          throw new Error('請先登入涓恆會員後再使用 AI 分析。');
+        }
+
         const response = await fetch(AI_API_ENDPOINT, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + juanHengSession.access_token,
+            'apikey': SUPABASE_PUBLISHABLE_KEY
+          },
           body: JSON.stringify({
             module: currentTab,
             prompt: buildPromptText(),
