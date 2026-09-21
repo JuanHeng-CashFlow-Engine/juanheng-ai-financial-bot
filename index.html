@@ -1588,15 +1588,9 @@ ${port}
       };
 
       try {
-        const authHeaders = { 'Content-Type': 'application/json' };
-        if (juanHengSession?.access_token) {
-          authHeaders['Authorization'] = 'Bearer ' + juanHengSession.access_token;
-          authHeaders['apikey'] = SUPABASE_PUBLISHABLE_KEY;
-        }
-
         const response = await fetch(AI_API_ENDPOINT, {
           method: 'POST',
-          headers: authHeaders,
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             module: currentTab,
             prompt: buildPromptText(),
