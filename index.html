@@ -778,7 +778,10 @@ BNDW 全球債券: 20%
 
       if (!juanHengSession?.user) {
         setRetirementSyncStatus("尚未登入，正在前往退休金流續航儀登入…");
-        window.location.href = RETIREMENT_APP_URL;
+        const returnTo = window.location.origin + window.location.pathname + "#module5";
+        const loginUrl = new URL(RETIREMENT_APP_URL);
+        loginUrl.searchParams.set("return_to", returnTo);
+        window.location.href = loginUrl.toString();
         return;
       }
 
@@ -925,6 +928,9 @@ BNDW 全球債券: 20%
 
     document.addEventListener('DOMContentLoaded', () => {
       void initJuanHengSharedSession();
+      if (window.location.hash === "#module5") {
+        switchTab(5);
+      }
       const sel = document.getElementById('m1-timeframe');
       if (sel) {
         sel.addEventListener('change', updateM1StyleHint);
