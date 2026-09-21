@@ -78,3 +78,13 @@ AI 網站與退休金流續航儀使用同一個 Supabase 專案與 Auth。
 - 驗證未登入者會收到 401，登入者可以正常分析
 
 這一階段應與前端 Authorization header 同時上線，避免只改其中一邊造成瀏覽器 CORS 失敗。
+
+
+### Phase 1.5 測試端點
+Draft PR 測試分支改用：
+`https://dhhazovgtpcxunmdnlqd.supabase.co/functions/v1/financial-analysis-auth`
+
+此函式已啟用 `verify_jwt = true`，並允許瀏覽器傳送：
+`authorization, apikey, x-client-info, content-type`。
+
+正式 `financial-analysis` 尚未替換，因此正式網站不受影響。
