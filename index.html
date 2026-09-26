@@ -1710,7 +1710,7 @@ ${renderAnalysis(currentTab, data.analysis)}
               location.href = RETIREMENT_APP_URL + '?analysis_handoff=1';
             } catch (_) { transfer.textContent = '瀏覽器無法暫存資料，請允許網站儲存後重試'; }
           });
-          dynamic.appendChild(transfer);
+          dynamic.prepend(transfer);
         }
 
       } catch (err) {
