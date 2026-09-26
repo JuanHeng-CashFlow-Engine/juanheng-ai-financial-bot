@@ -1599,6 +1599,11 @@ ${port}
           throw new Error('請先登入涓恆會員後再使用 AI 分析。');
         }
 
+        const analyzedUserId = juanHengSession.user.id;
+        const analyzedModule = Number(currentTab);
+        const analyzedTarget = document.getElementById('global-target')?.value || '';
+        const analyzedNews = document.getElementById('m3-news')?.value || '';
+        const analyzedPrompt = buildPromptText();
         const sendAnalysis = () => fetch(AI_API_ENDPOINT, {
           method: 'POST',
           headers: {
@@ -1607,8 +1612,8 @@ ${port}
             'apikey': SUPABASE_PUBLISHABLE_KEY
           },
           body: JSON.stringify({
-            module: currentTab,
-            prompt: buildPromptText(),
+            module: analyzedModule,
+            prompt: analyzedPrompt,
             locale: 'zh-TW',
             requested_at: new Date().toISOString()
           })
@@ -1685,6 +1690,28 @@ ${port}
 ${renderAnalysis(currentTab, data.analysis)}
           </div>
 `;
+
+        if (analyzedModule >= 1 && analyzedModule <= 4) {
+          const transfer = document.createElement('button');
+          transfer.type = 'button';
+          transfer.className = 'mt-4 px-5 py-3 rounded-xl bg-teal-600 text-white font-bold';
+          transfer.textContent = '帶回退休影響試算 →';
+          transfer.addEventListener('click', async () => {
+            const current = await supabaseClient.auth.getSession();
+            if (!current.data?.session || current.data.session.user.id !== analyzedUserId) {
+              transfer.textContent = '登入狀態已改變，請重新登入並分析'; return;
+            }
+            try {
+              sessionStorage.setItem('juanheng-retirement-handoff-v1', JSON.stringify({
+                version:1,userId:current.data.session.user.id,createdAt:Date.now(),
+                module:analyzedModule,target:analyzedTarget.slice(0,120),news:analyzedNews.slice(0,4000),
+                report:{generated_at:data.generated_at,analysis:data.analysis}
+              }));
+              location.href = RETIREMENT_APP_URL + '?analysis_handoff=1';
+            } catch (_) { transfer.textContent = '瀏覽器無法暫存資料，請允許網站儲存後重試'; }
+          });
+          dynamic.appendChild(transfer);
+        }
 
       } catch (err) {
         loading.classList.add('hidden');
